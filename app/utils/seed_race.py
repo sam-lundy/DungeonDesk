@@ -1,13 +1,7 @@
 from app.models import db
-from app.models.user import User
-from app.models.character import CharacterSheet, CharacterEquipments
-from app.models.equipment import Equipment
-from app.models.class_model import Classes
-from app.models.race import Race, Proficiency, Language, Trait
-from app.models.assoc_tables import (
-    race_languages, race_traits, 
-    race_fixed_proficiencies, race_optional_proficiencies
-)
+from app.models import Race, Proficiency, Language, Trait
+from app.models import AbilityScore
+from app.models import race_ability_bonuses
 import requests
 import time
 
@@ -71,9 +65,6 @@ def seed_proficiencies():
         if 'starting_proficiencies' in race_data:
             all_proficiencies.update([prof['name'] for prof in race_data['starting_proficiencies']])
         
-        if 'starting_proficiency_options' in race_data:
-            proficiency_options = race_data['starting_proficiency_options'].get('from', [])
-            all_proficiencies.update([prof['item']['name'] for prof in proficiency_options if isinstance(prof, dict)])
     
     # Add proficiencies to the database
     for proficiency_name in all_proficiencies:
@@ -88,17 +79,12 @@ def process_proficiencies(race_data, race_obj):
     if 'starting_proficiencies' in race_data:
         for prof in race_data['starting_proficiencies']:
             proficiency = Proficiency.query.filter_by(name=prof['name']).first()
-            if proficiency:
-                race_obj.starting_proficiencies.append(proficiency)
-
-    # Optional Proficiencies
-    if 'starting_proficiency_options' in race_data:
-        proficiency_options = race_data['starting_proficiency_options'].get('from', [])
-        for prof_option in proficiency_options:
-            if isinstance(prof_option, dict) and 'item' in prof_option:
-                proficiency = Proficiency.query.filter_by(name=prof_option['item']['name']).first()
-                if proficiency:
-                    race_obj.starting_proficiency_options.append(proficiency)
+            if not proficiency:
+                proficiency = Proficiency(name=prof['name'])
+                db.session.add(proficiency)
+                db.session.commit()
+            race_obj.starting_proficiencies.append(proficiency)
+            db.session.commit()
 
     db.session.commit()
 
@@ -107,6 +93,7 @@ def process_proficiencies(race_data, race_obj):
 
 def seed_races():
     races = fetch_data('races')
+
     for race in races['results']:
         race_data = fetch_data('races/' + race['index'])
         bonuses = {bonus['ability_score']['index']: bonus['bonus'] for bonus in race_data['ability_bonuses']}
@@ -122,49 +109,45 @@ def seed_races():
         if not existing_race:
             new_race = Race(
                 name=race_data['name'],
-                str_bonus=bonuses.get('str', 0),
-                dex_bonus=bonuses.get('dex', 0),
-                con_bonus=bonuses.get('con', 0),
-                int_bonus=bonuses.get('int', 0),
-                wis_bonus=bonuses.get('wis', 0),
-                cha_bonus=bonuses.get('cha', 0),
                 languages=race_languages,
                 traits=race_traits
             )
             db.session.add(new_race)
-            db.session.commit()
+            db.session.flush()  # flush to get the id of the new_race without committing
+
+            # Assign ability score bonuses
+            for ability, bonus_value in bonuses.items():
+                ability_score = AbilityScore.query.filter_by(name=ability.upper()).first()
+                if ability_score:
+                    race_ability_bonuses.insert().values(race_id=new_race.id, ability_score_id=ability_score.id, bonus=bonus_value)
+
 
             combined_proficiencies_race = process_proficiencies(race_data, new_race)
-            new_race.starting_proficiencies = combined_proficiencies_race
+            
+            if race_data['subraces']:
+                new_race.has_subrace = True
+                for subrace_info in race_data['subraces']:
+                    subrace_data = fetch_data('subraces/' + subrace_info['index'])
+                    subrace_traits = Trait.query.filter(
+                        Trait.name.in_([trait['name'] for trait in subrace_data.get('racial_traits', [])])
+                    ).all()
+                    
+                    new_subrace = Race(
+                        name=subrace_data['name'],
+                        parent_race_id=new_race.id,
+                        languages=race_languages,
+                        traits=race_traits + subrace_traits
+                    )
+                    db.session.add(new_subrace)
+                    
+                    subrace_combined_proficiencies = process_proficiencies(subrace_data, new_subrace)
+                    new_subrace.starting_proficiencies = subrace_combined_proficiencies
+            
+            # Commit all the changes related to this race at once
             db.session.commit()
-            race_id = new_race.id
+
         else:
             combined_proficiencies_race = process_proficiencies(race_data, existing_race)
-            existing_race.starting_proficiencies = combined_proficiencies_race
+            # Commit the changes related to the existing race
             db.session.commit()
-            race_id = existing_race.id
-
-    for subrace_info in race_data['subraces']:
-        subrace_data = fetch_data('subraces/' + subrace_info['index'])
-        subrace_traits = Trait.query.filter(
-            Trait.name.in_([trait['name'] for trait in subrace_data.get('racial_traits', [])])
-        ).all()
-
-        # Create the subrace object first without proficiencies
-        new_subrace = Race(
-            name=subrace_data['name'],
-            parent_race_id=race_id,
-            languages=race_languages,  # Assuming subraces inherit languages from the main race
-            traits=race_traits + subrace_traits
-        )
-        db.session.add(new_subrace)
-        db.session.commit()
-
-        # Process proficiencies specific to this subrace
-        subrace_combined_proficiencies = process_proficiencies(subrace_data, new_subrace)
-        new_subrace.starting_proficiencies = subrace_combined_proficiencies
-
-        db.session.commit()
-
-
 

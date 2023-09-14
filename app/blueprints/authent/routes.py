@@ -1,6 +1,6 @@
 from . import authent
 from flask import request, jsonify
-from app.models.user import db, User
+from ...models import db, User
 from firebase_admin import auth
 import os
 
