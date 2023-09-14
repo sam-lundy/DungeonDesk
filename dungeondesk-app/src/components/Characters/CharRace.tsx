@@ -122,6 +122,7 @@ const CharRace: React.FC = () => {
         }
     
         setSelectedRace(prev => ({ ...prev, [raceName]: selectedValue }));
+        setRaceDetails(null);
         getRaceDetails({ variables: { name: queryName } });
         setShowModal(true);
     };
@@ -129,6 +130,7 @@ const CharRace: React.FC = () => {
 
     const handleCancel = () => {
         setSelectedRace(null);  // Reset the selected race
+        setRaceDetails(null);  // Reset the race details
         setShowModal(false);
     };
 

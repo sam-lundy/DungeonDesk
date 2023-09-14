@@ -6,13 +6,13 @@ import Login from './components/firebase/firebaseLogin';
 import Register from './components/firebase/firebaseRegister';
 import Navigation from './components/navigation/Navigation';
 import Dashboard from './components/dashboard/Dashboard';
-import Characters from './components/Characters/Characters';
+import Characters from './components/characters/Characters';
 // import CharSheet from './components/Characters/CharSheet.tsx';
-import CharacterCreate from './components/Characters/CharacterCreate';
-import CharRace from './components/Characters/CharRace';
-import CharClass from './components/Characters/CharClass';
-import CharAbilities from './components/Characters/CharAbilities';
-import CharEquip from './components/Characters/CharEquip';
+import CharacterCreate from './components/characters/CharacterCreate';
+import CharRace from './components/characters/CharRace';
+import CharClass from './components/characters/CharClass';
+import CharAbilities from './components/characters/CharAbilities';
+import CharEquip from './components/characters/CharEquip';
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import AppDrawer from './components/navigation/AppDrawer';
 import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
@@ -84,7 +84,6 @@ const App = () => {
                   </header>
                   </div>
                 } />
-                <Route path='/test' element={<div>Test Route</div>} />
                 <Route path='/profile' element={<UserProfile />} />
                 <Route path='/login' element={<Login />} />
                 <Route path='/register' element={<Register />} />

@@ -1,7 +1,6 @@
 from datetime import datetime
-from flask_sqlalchemy import SQLAlchemy
+from . import db
 
-db = SQLAlchemy()
 
 class User(db.Model):
     uid = db.Column(db.String, primary_key=True) #Firebase UID
@@ -13,11 +12,3 @@ class User(db.Model):
     location = db.Column(db.String(100), default='Unknown')
     bio = db.Column(db.String(1000), nullable=False, default='No bio set')
     character_sheets = db.relationship('CharacterSheet', backref='user', lazy=True)
-
-
-class CharacterSheet(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    attributes = db.Column(db.JSON)  # Storing character attributes as JSON
-    user_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False, index=True)
-

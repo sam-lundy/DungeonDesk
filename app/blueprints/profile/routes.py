@@ -1,6 +1,6 @@
 from . import profile
 from flask import request, jsonify
-from app.models import db, User
+from app.models.user import db, User
 from firebase_admin import auth
 from werkzeug.utils import secure_filename
 import os
