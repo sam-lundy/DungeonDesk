@@ -38,25 +38,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Listen for authentication state changes
         const unsubscribe = auth.onAuthStateChanged(async user => {
             if (user) {
-                // If currentUser is null (indicating no user was previously logged in during this session)
-                if (!currentUser) {
-                    const extendedInfo = await fetchUserFromDatabase(user.uid);
-                    const newUserData = {
-                        uid: user.uid,
-                        email: user.email,
-                        username: extendedInfo.username,
-                        dateCreated: extendedInfo.dateCreated,
-                        timezone: extendedInfo.timezone,
-                        location: extendedInfo.location,
-                        bio: extendedInfo.bio,
-                        profilePicURL: extendedInfo.profile_image,
-                    };
+                const extendedInfo = await fetchUserFromDatabase(user.uid);
+                const newUserData = {
+                    uid: user.uid,
+                    email: user.email,
+                    username: extendedInfo.username,
+                    dateCreated: extendedInfo.dateCreated,
+                    timezone: extendedInfo.timezone,
+                    location: extendedInfo.location,
+                    bio: extendedInfo.bio,
+                    profilePicURL: extendedInfo.profile_image,
+                };
+
+                // If currentUser is null or the data has changed, update the state.
+                if (!currentUser || !isUserDataEqual(newUserData, currentUser)) {
                     setCurrentUser(newUserData);
-                } 
-                // If you still want to check if user data has changed and then update, you can do so here
-                // else if (!isUserDataEqual(newUserData, currentUser)) {
-                //     setCurrentUser(newUserData);
-                // }
+                }
+
             } else {
                 setCurrentUser(null);
             }
@@ -64,7 +62,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
     
         return () => unsubscribe();
-    }, []);
+    }, [currentUser]); // We add currentUser to the dependency array to ensure the effect re-runs when currentUser changes
 
 
     const contextValue = useMemo(() => ({ currentUser }), [currentUser]);
@@ -81,6 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     );
 };
 
+
 async function fetchUserFromDatabase(uid: string): Promise<any> {
     const endpoint = `http://localhost:5000/api/get-profile`;
 
@@ -93,16 +92,22 @@ async function fetchUserFromDatabase(uid: string): Promise<any> {
             },
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-            throw new Error('Failed to fetch user from database.');
+            if (response.status === 404) {
+                console.log("User profile not found. This is expected for new users.");
+                // Handle the "user not found" scenario here, if needed
+                return null; // or return a default profile object
+            } else {
+                throw new Error('Failed to fetch user from database.');
+            }
         }
 
-
-        const data = await response.json();
         return data;
 
     } catch (error) {
         console.error("There was an error fetching the user's data:", error);
-        return {};
+        throw error;
     }
 }

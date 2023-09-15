@@ -1,22 +1,18 @@
 import React, { useContext, useState, useEffect, ChangeEvent } from 'react';
 import { AuthContext } from '../firebase/firebase.auth.tsx';
 import { 
-    Container, Typography, TextField, Button, Avatar, 
-    Grid, Divider, IconButton, Tooltip, Box
+    Container, Typography, TextField, Button, Avatar, Box
 } from '@mui/material';
-import OutlinedInput from '@mui/material/OutlinedInput';
 import './UserProfile.css';
 
-console.log("Rendering UserProfile");
 
-interface UserProfileProps {
-    // Define any props you expect this component to receive
-    // e.g., user: UserType;
-}
+// interface UserProfileProps {
+
+// }
 
 
-
-const UserProfile: React.FC<UserProfileProps> = (props) => {
+const UserProfile: React.FC<{}> = () => {
+    console.log("Rendering UserProfile");
     const [timezone, setTimezone] = useState<string>('');
     const [location, setLocation] = useState<string>('');
     const [bio, setBio] = useState<string>('');
@@ -249,8 +245,6 @@ const UserProfile: React.FC<UserProfileProps> = (props) => {
     
         </Container>
     );
-    
-      
 }
 
-export default UserProfile;
+export default React.memo(UserProfile);

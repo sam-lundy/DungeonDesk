@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
     Container, Typography, Box, Button, Modal
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { gql, useLazyQuery } from '@apollo/client';
+import { useFormik } from 'formik';
 
 
 interface ClassDetails {
@@ -20,10 +21,24 @@ interface ClassData {
 
 
 const CharClass: React.FC = () => {
-    const [selectedClass, setSelectedClass] = useState<string | null>(null);
     const [classDetails, setClassDetails] = useState<ClassDetails | null>(null);
     const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
+
+    const formik = useFormik({
+        initialValues: {
+            selectedClass: ''
+        },
+        onSubmit: () => {
+            navigate('/character-create/abilities');
+        }
+    });
+
+    const handleClassSelection = (charClass: string) => {
+        formik.setFieldValue('selectedClass', charClass);
+        getClassDetails({ variables: { index: charClass.toLowerCase() } });
+        setShowModal(true);
+    };
 
     // GraphQL query to fetch class details.
     const GET_CLASS_DETAILS = gql`
@@ -41,7 +56,6 @@ const CharClass: React.FC = () => {
     }
 `;
 
-
     const [getClassDetails, { data: classData }] = useLazyQuery<ClassData>(GET_CLASS_DETAILS);
 
 
@@ -56,42 +70,31 @@ const CharClass: React.FC = () => {
         'Barbarian', 'Bard', 'Cleric', 'Druid', 'Fighter', 'Monk', 
         'Paladin', 'Ranger', 'Rogue', 'Sorcerer', 'Warlock', 'Wizard'
     ];
-
-    const handleClassSelection = (charClass: string) => {
-        setSelectedClass(charClass);
-        getClassDetails({ variables: { index: charClass.toLowerCase() } });
-        setShowModal(true);
-    };
     
 
     const handleCloseModal = () => {
-        setSelectedClass(null);
+        formik.setFieldValue('selectedClass', '');
         setShowModal(false);
     };
 
-    const handleNext = () => {
-        navigate('/character-abilities');
-    };
 
     return (
         <Container>
             <Typography variant="h5">Choose Class</Typography>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
-                {classes.map(charClass => (
-                    <Button 
-                        key={charClass} 
-                        variant="contained" 
-                        color={selectedClass === charClass ? "secondary" : "primary"}
-                        sx={{
-                            width: '200px',
-                        }}
-                        onClick={() => handleClassSelection(charClass)}
-                    >
-                        {charClass}
-                    </Button>
-                ))}
-            </Box>
+            <form onSubmit={formik.handleSubmit}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
+                    {classes.map(charClass => (
+                        <Button 
+                            key={charClass} 
+                            variant="contained" 
+                            color={formik.values.selectedClass === charClass ? "secondary" : "primary"}
+                            onClick={() => handleClassSelection(charClass)}
+                        >
+                            {charClass}
+                        </Button>
+                    ))}
+                </Box>
 
             {showModal && (
                 <Modal 
@@ -127,11 +130,14 @@ const CharClass: React.FC = () => {
                     ))}
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
                             <Button variant="outlined" onClick={handleCloseModal}>Cancel</Button>
-                            <Button variant="contained" color="primary" onClick={handleNext}>Next: Abilities</Button>
+                            <Button variant="contained" color="primary" onClick={formik.submitForm}>
+                                Next: Abilities
+                            </Button>
                         </Box>
                     </Box>
                 </Modal>
             )}
+            </form>
         </Container>
     );
 }

@@ -13,6 +13,7 @@ import CharRace from './components/characters/CharRace';
 import CharClass from './components/characters/CharClass';
 import CharAbilities from './components/characters/CharAbilities';
 import CharEquip from './components/characters/CharEquip';
+import { CharacterCreationProvider } from './components/characters/CharCreationContext';
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import AppDrawer from './components/navigation/AppDrawer';
 import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
@@ -49,7 +50,7 @@ const App = () => {
 
   const toggleDrawer = useCallback(() => {
     setDrawerOpen(prevState => !prevState);
-  }, [drawerOpen]);
+  }, []);
 
 
   return (
@@ -76,24 +77,30 @@ const App = () => {
                 padding: '16px' // spacing inside the box
               }}>
               <Routes>
-                <Route path='/' element={
-                  <div>
-                  <header className='App-header' style={{ marginTop: '-500px' }}>
-                      <h1>DungeonDesk</h1>
-                      <p>Welcome to DungeonDesk, your ultimate fantasy campaign manager!</p>
-                  </header>
-                  </div>
-                } />
-                <Route path='/profile' element={<UserProfile />} />
-                <Route path='/login' element={<Login />} />
-                <Route path='/register' element={<Register />} />
-                <Route path='/dashboard' element={<Dashboard />} />
-                <Route path='/characters' element={<Characters />} />
-                <Route path='/character-create' element={<CharacterCreate />} /> 
-                <Route path='/character-race' element={<CharRace />} /> 
-                <Route path='/character-class' element={<CharClass />} /> 
-                <Route path='/character-abilities' element={<CharAbilities />} /> 
-                <Route path='/character-equipment' element={<CharEquip />} />
+                  <Route path='/' element={
+                    <div>
+                    <header className='App-header' style={{ marginTop: '-500px' }}>
+                        <h1>DungeonDesk</h1>
+                        <p>Welcome to DungeonDesk, your ultimate fantasy campaign manager!</p>
+                    </header>
+                    </div>
+                  } />
+                  <Route path='/profile' element={<UserProfile />} />
+                  <Route path='/login' element={<Login />} />
+                  <Route path='/register' element={<Register />} />
+                  <Route path='/dashboard' element={<Dashboard />} />
+                  <Route path='/characters' element={<Characters />} />
+                  <Route path='/character-create/*' element={
+                    <CharacterCreationProvider>
+                      <Routes>
+                          <Route index element={<CharacterCreate />} />
+                          <Route path='race' element={<CharRace />} />
+                          <Route path='class' element={<CharClass />} />
+                          <Route path='abilities' element={<CharAbilities />} />
+                          <Route path='equipment' element={<CharEquip />} />
+                      </Routes>
+                    </CharacterCreationProvider>
+                  }/>
               </Routes>
                 </Box>
               </div>
