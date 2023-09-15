@@ -4,7 +4,7 @@ from flask_migrate import Migrate
 from .models import db
 from flask_cors import CORS
 from .utils.firebase_utils import initialize_firebase
-from .utils.seed_race import seed_races, seed_langs_and_traits, seed_proficiencies
+from .utils.seed_race import seed_races, seed_langs_and_traits
 from .utils.seed_class import seed_classes
 from .utils.seed_other import seed_ability_scores
 from flask.cli import with_appcontext
@@ -33,7 +33,6 @@ def create_app():
     @app.cli.command("seed-races")
     def seed_db_command():
         """Seeds the database with data from the DND API."""
-        seed_proficiencies()
         seed_langs_and_traits()
         seed_races()
 

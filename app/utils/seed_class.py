@@ -1,5 +1,5 @@
 from app.models import db
-from app.models import Classes, ClassProficiency, AbilityScore, StartingEquipmentOption
+from app.models import Classes, AbilityScore, SubClass
 import requests
 import time
 
@@ -27,26 +27,8 @@ def fetch_data(endpoint):
                 return None
 
 
-def seed_class_proficiencies(class_data):
-    for prof in class_data['proficiencies']:
-        proficiency = ClassProficiency.query.filter_by(name=prof['name']).first()
-        if not proficiency:
-            proficiency = ClassProficiency(name=prof['name'])
-            db.session.add(proficiency)
-            db.session.commit()
-    return [ClassProficiency.query.filter_by(name=prof['name']).first() for prof in class_data['proficiencies']]
-
-
 def seed_ability_scores(class_data):
     return [AbilityScore.query.filter_by(name=ability['name']).first() for ability in class_data['saving_throws']]
-
-
-def seed_starting_equipment_options(class_data, class_obj):
-    for option in class_data.get('starting_equipment_options', []):
-        desc = option.get('desc')
-        new_option = StartingEquipmentOption(description=desc, class_id=class_obj.id)
-        db.session.add(new_option)
-    db.session.commit()
 
 
 def seed_classes():
@@ -55,28 +37,22 @@ def seed_classes():
     for class_info in classes_list['results']:
         class_data = fetch_data('classes/' + class_info['index'])
         
-        # Seed basic class details
         existing_class = Classes.query.filter_by(name=class_data['name']).first()
         if not existing_class:
             new_class = Classes(
                 name=class_data['name'],
                 hit_dice=f"d{class_data['hit_die']}",
-                # Assuming the description and primary_ability fields can be extracted similarly
-                description=class_data.get('description', ''),
-                primary_ability=class_data.get('primary_ability', '')
+                description=class_data.get('description', '')
             )
-            db.session.add(new_class)
-            db.session.commit()
-
-            # Seed proficiencies
-            proficiencies = seed_class_proficiencies(class_data)
-            new_class.proficiencies = proficiencies
-
-            # Seed saving throws
-            saving_throws = seed_ability_scores(class_data)
+            
+            saving_throws = [AbilityScore.query.filter_by(name=ability['name']).first() for ability in class_data['saving_throws']]
             new_class.saving_throws = saving_throws
+            
+            db.session.add(new_class)
 
-            # Seed starting equipment options
-            seed_starting_equipment_options(class_data, new_class)
+            for subclass_data in class_data.get('subclasses', []):
+                new_subclass = SubClass(name=subclass_data['name'], parent_class=new_class)
+                db.session.add(new_subclass)
 
-            db.session.commit()
+    # Commit once after processing all classes and their subclasses
+    db.session.commit()

@@ -4,50 +4,6 @@ from datetime import datetime
 db = SQLAlchemy()
 
 
-
-character_classes = db.Table('character_classes',
-    db.Column('character_id', db.Integer, db.ForeignKey('character_sheet.id')),
-    db.Column('class_id', db.Integer, db.ForeignKey('classes.id')),
-    db.Column('level', db.Integer)  # Level of the character in this class
-)
-
-class_proficiencies = db.Table('class_proficiencies',
-    db.Column('class_id', db.Integer, db.ForeignKey('classes.id')),
-    db.Column('proficiency_id', db.Integer, db.ForeignKey('class_proficiency.id'))
-)
-
-
-class_saving_throws = db.Table('class_saving_throws',
-    db.Column('class_id', db.Integer, db.ForeignKey('classes.id')),
-    db.Column('ability_score_id', db.Integer, db.ForeignKey('ability_score.id'))
-)
-
-
-race_languages = db.Table('race_languages',
-    db.Column('race_id', db.Integer, db.ForeignKey('race.id')),
-    db.Column('language_id', db.Integer, db.ForeignKey('language.id'))
-)
-
-
-race_ability_bonuses = db.Table('race_ability_bonuses',
-    db.Column('race_id', db.Integer, db.ForeignKey('race.id')),
-    db.Column('ability_score_id', db.Integer, db.ForeignKey('ability_score.id')),
-    db.Column('bonus', db.Integer, default=0)
-)
-
-
-race_traits = db.Table('race_traits',
-    db.Column('race_id', db.Integer, db.ForeignKey('race.id')),
-    db.Column('trait_id', db.Integer, db.ForeignKey('trait.id'))
-)
-
-
-race_fixed_proficiencies = db.Table('race_fixed_proficiencies',
-    db.Column('race_id', db.Integer, db.ForeignKey('race.id')),
-    db.Column('proficiency_id', db.Integer, db.ForeignKey('proficiency.id'))
-)
-
-
 class User(db.Model):
     uid = db.Column(db.String, primary_key=True) #Firebase UID
     username = db.Column(db.String, unique=True, nullable=False)
@@ -63,15 +19,15 @@ class User(db.Model):
 class CharacterSheet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    race_id = db.Column(db.Integer, db.ForeignKey('race.id'), nullable=False)
+    race_name = db.Column(db.String, nullable=False)
+    class_name = db.Column(db.String, nullable=False)
+    level = db.Column(db.Integer, nullable=False)
     strength = db.Column(db.Integer, nullable=False)
     dexterity = db.Column(db.Integer, nullable=False)
     constitution = db.Column(db.Integer, nullable=False)
     intelligence = db.Column(db.Integer, nullable=False)
     wisdom = db.Column(db.Integer, nullable=False)
     charisma = db.Column(db.Integer, nullable=False)
-    attributes = db.Column(db.JSON)  # Storing character attributes as JSON
-    classes = db.relationship('Classes', secondary=character_classes, back_populates='characters')
     user_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False, index=True)
 
 
@@ -81,22 +37,19 @@ class CharacterEquipments(db.Model):
     equipment_id = db.Column(db.Integer, db.ForeignKey('equipment.id'), nullable=False)
 
 
+race_ability_bonuses = db.Table('race_ability_bonuses',
+    db.Column('race_id', db.Integer, db.ForeignKey('race.id')),
+    db.Column('ability_score_id', db.Integer, db.ForeignKey('ability_score.id')),
+    db.Column('bonus', db.Integer, default=0)
+)
+
+
 class Race(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, unique=True)
-    parent_race_id = db.Column(db.Integer, db.ForeignKey('race.id'), nullable=True)
-    has_subrace = db.Column(db.Boolean, default=False)
+    parent_race_id = db.Column(db.Integer, db.ForeignKey('race.id'), nullable=True)  # Self-referential foreign key
     ability_score_bonuses = db.relationship('AbilityScore', secondary=race_ability_bonuses, backref=db.backref('races', lazy=True))
-    characters = db.relationship('CharacterSheet', backref='race', lazy=True)
-    starting_proficiencies = db.relationship('Proficiency', secondary='race_fixed_proficiencies', backref=db.backref('races_fixed', lazy=True))
-    languages = db.relationship('Language', secondary='race_languages', backref=db.backref('races', lazy=True))
-    traits = db.relationship('Trait', secondary='race_traits', backref=db.backref('races', lazy=True))
-    subraces = db.relationship('Race', backref=db.backref('parent_race', remote_side=[id]))
-
-
-class Proficiency(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, unique=True, nullable=False)
+    subraces = db.relationship('Race', backref=db.backref('parent_race', remote_side=[id]))  # Self-referential relationship
 
 
 class Language(db.Model):
@@ -110,34 +63,32 @@ class Trait(db.Model):
     name = db.Column(db.String, unique=True, nullable=False)
 
 
+class_saving_throws = db.Table('class_saving_throws',
+    db.Column('class_id', db.Integer, db.ForeignKey('classes.id')),
+    db.Column('ability_score_id', db.Integer, db.ForeignKey('ability_score.id'))
+)
+
+
 class Classes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, unique=True)
-    description = db.Column(db.Text)
-    hit_dice = db.Column(db.String)
-    primary_ability = db.Column(db.String)
-    saving_throws = db.relationship('AbilityScore', secondary=class_saving_throws, backref='classes')
-    proficiencies = db.relationship('ClassProficiency', secondary='class_proficiencies', back_populates='classes')
-    starting_equipment_options = db.relationship('StartingEquipmentOption', backref='class_')
-    characters = db.relationship('CharacterSheet', secondary=character_classes, back_populates='classes')
+    description = db.Column(db.Text, nullable=True)
+    hit_dice = db.Column(db.String, nullable=True)
+    subclasses = db.relationship('SubClass', back_populates="parent_class")
+    saving_throws = db.relationship('AbilityScore', secondary=class_saving_throws, backref=db.backref('classes', lazy=True))
 
 
-class ClassProficiency(db.Model):
+class SubClass(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, unique=True, nullable=False)
-    classes = db.relationship('Classes', secondary='class_proficiencies', back_populates='proficiencies')
+    name = db.Column(db.String, nullable=False, unique=True)
+    class_id = db.Column(db.Integer, db.ForeignKey('classes.id'))
+    parent_class = db.relationship('Classes', back_populates="subclasses")
 
 
 class AbilityScore(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True, nullable=False)
-    classes = db.relationship('Classes', secondary='class_saving_throws', back_populates='saving_throws')
-
-
-class StartingEquipmentOption(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    description = db.Column(db.Text, nullable=False)
-    class_id = db.Column(db.Integer, db.ForeignKey('classes.id'))
+    full_name = db.Column(db.String, nullable=False)
 
 
 class Equipment(db.Model):
@@ -145,5 +96,3 @@ class Equipment(db.Model):
     name = db.Column(db.String, nullable=False, unique=True)
     description = db.Column(db.String, nullable=False)
     characters = db.relationship('CharacterSheet', secondary='character_equipments', backref=db.backref('equipments', lazy=True))
-
-
