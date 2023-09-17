@@ -5,6 +5,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { gql, useLazyQuery } from '@apollo/client';
 import { useFormik } from 'formik';
+import { useCharacterCreation } from './CharCreationContext';
 
 
 interface ClassDetails {
@@ -23,7 +24,9 @@ interface ClassData {
 const CharClass: React.FC = () => {
     const [classDetails, setClassDetails] = useState<ClassDetails | null>(null);
     const [showModal, setShowModal] = useState(false);
+    const { characterData, setCharacterData } = useCharacterCreation();
     const navigate = useNavigate();
+    console.log(characterData)
 
     const formik = useFormik({
         initialValues: {
@@ -36,6 +39,10 @@ const CharClass: React.FC = () => {
 
     const handleClassSelection = (charClass: string) => {
         formik.setFieldValue('selectedClass', charClass);
+        setCharacterData(prevData => ({
+            ...prevData,
+            class: charClass
+        }));
         getClassDetails({ variables: { index: charClass.toLowerCase() } });
         setShowModal(true);
     };
@@ -90,6 +97,14 @@ const CharClass: React.FC = () => {
                             variant="contained" 
                             color={formik.values.selectedClass === charClass ? "secondary" : "primary"}
                             onClick={() => handleClassSelection(charClass)}
+                            sx={{
+                                backgroundColor: '#0C0A26',
+                                color: 'white',
+                                '&:hover': {
+                                    backgroundColor: '#0C0A26', // Keeps the same color on hover
+                                    opacity: 0.8 // Optionally, you can add a slight opacity change on hover
+                                }
+                            }}
                         >
                             {charClass}
                         </Button>
@@ -115,22 +130,37 @@ const CharClass: React.FC = () => {
                             maxWidth: '400px', 
                             borderRadius: '8px',
                             overflowY: 'auto',  // Allow vertical scrolling
-                            maxHeight: '70vh'  // Set a maximum height
+                            maxHeight: '70vh',  // Set a maximum height
+                            textAlign: 'center' // <-- This centers the text
                         }}
                     >
-                    <Typography variant="h6">{classDetails?.name}</Typography>
-                    <Typography variant="body1">Hit Die: {classDetails?.hit_die}</Typography>
-                    <Typography variant="subtitle1">Saving Throws:</Typography>
+                    <Typography variant="h6" sx={{ marginBottom: 2 }}>{classDetails?.name}</Typography>
+                    <Typography variant="body1" sx={{ marginBottom: 2 }}>Hit Die: {classDetails?.hit_die}</Typography>
+                    <Typography variant="subtitle1" sx={{ marginTop: 2, marginBottom: 1 }}>Saving Throws:</Typography>
                     {classDetails?.saving_throws?.map((saving_throw) => (
-                        <Typography key={saving_throw.name} variant="body2">{saving_throw.name}</Typography>
+                        <Typography key={saving_throw.name} variant="body2" sx={{ marginBottom: 1 }}>{saving_throw.name}</Typography>
                     ))}
-                    <Typography variant="subtitle1">Proficiencies:</Typography>
+
+                    <Typography variant="subtitle1" sx={{ marginTop: 2, marginBottom: 1 }}>Proficiencies:</Typography>
                     {classDetails?.proficiencies?.map((proficiency) => (
-                        <Typography key={proficiency.name} variant="body2">{proficiency.name}</Typography>
+                        <Typography key={proficiency.name} variant="body2" sx={{ marginBottom: 1 }}>{proficiency.name}</Typography>
                     ))}
+
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
                             <Button variant="outlined" onClick={handleCloseModal}>Cancel</Button>
-                            <Button variant="contained" color="primary" onClick={formik.submitForm}>
+                            <Button 
+                                variant="contained" 
+                                color="primary" 
+                                onClick={formik.submitForm}
+                                sx={{
+                                    backgroundColor: '#0C0A26',
+                                    color: 'white',
+                                    '&:hover': {
+                                        backgroundColor: '#0C0A26',
+                                        opacity: 0.8
+                                    }
+                                }}
+                                >
                                 Next: Abilities
                             </Button>
                         </Box>

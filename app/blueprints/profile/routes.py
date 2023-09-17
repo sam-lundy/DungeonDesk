@@ -1,6 +1,6 @@
 from . import profile
 from flask import request, jsonify
-from ...models import db, User
+from ...models import db, User, CharacterSheet
 from firebase_admin import auth
 from werkzeug.utils import secure_filename
 import os
@@ -106,3 +106,32 @@ def avatar_upload():
                 print(f"Error updating profile_pic for user {uid}: {e}")
             
         return jsonify({"url": f"{S3_LOCATION}{filename}"})
+
+
+
+
+@profile.route('/get-characters', methods=['GET'])
+def get_characters():
+    # Retrieve user_uid from the request's headers
+    user_uid = request.headers.get('uid')
+    
+    if not user_uid:
+        return jsonify({"error": "UID not provided."}), 400
+
+    # Query the database for characters associated with the user_uid
+    characters = CharacterSheet.query.filter_by(user_uid=user_uid).all()
+
+    # Convert the list of characters to a list of dictionaries to return as JSON
+    character_data = [{
+        "id": str(character.id),
+        "name": character.name,
+        "imageUrl": character.characterPic or "default_image_url"  # Provide a default image URL if none exists
+    } for character in characters]
+
+    if not character_data:
+        return jsonify({
+        "message": "No characters found for this user.",
+        "characters": []
+    })
+
+    return jsonify(character_data)

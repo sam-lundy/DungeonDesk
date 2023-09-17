@@ -4,6 +4,7 @@ import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
 import { SelectChangeEvent } from "@mui/material";
 import { gql, useLazyQuery } from "@apollo/client";
+import { useCharacterCreation } from "./CharCreationContext";
 
 interface Trait {
   name: string;
@@ -18,11 +19,12 @@ type Subrace = {
 interface SubraceToMainRaceMapping {
   "Hill Dwarf": string;
   "High Elf": string;
-  Lightfoot: string;
+  "Lightfoot": string;
   "Rock Gnome": string;
 }
 
 const CharRace: React.FC = () => {
+  const { characterData, setCharacterData } = useCharacterCreation();
   const [selectedRace, setSelectedRace] = useState<Record<
     string,
     string | null
@@ -55,22 +57,25 @@ const CharRace: React.FC = () => {
   `;
 
 
-  const formik = useFormik({
-    initialValues: {
-      selectedRace: selectedRace || {},
-    },
-    onSubmit: (values) => {
-      // Store the selected race, or do any other operations required
-      setSelectedRace(values.selectedRace);
 
-      // Navigate to the next step
+const formik = useFormik({
+  initialValues: {
+      selectedRace: selectedRace || {},
+  },
+    onSubmit: (values) => {
+      const raceValue = Object.values(values.selectedRace)[0] || '';
+      console.log("Setting race in context:", raceValue);
+      setCharacterData((prevData) => ({
+        ...prevData,
+        race: raceValue
+      }));
       navigate("/character-create/class");
     },
-  });
+    
+});
 
 
-  const [getRaceDetails, { data, loading, error }] =
-    useLazyQuery(GET_RACE_DETAILS);
+  const [getRaceDetails, { data, loading, error }] = useLazyQuery(GET_RACE_DETAILS);
 
 
   useEffect(() => {
@@ -102,18 +107,14 @@ const CharRace: React.FC = () => {
           }
         }
       }
-
-
       setRaceDetails({ name: raceData.name, traits: combinedTraits });
+      console.log("Processing GraphQL Data for:", data?.races[0]?.name);
     }
   }, [data]);
 
 
-  // Loading state
   if (loading) return <p>Loading...</p>;
 
-
-  // Error state
   if (error) return <p>Error: {error.message}</p>;
 
 
@@ -129,41 +130,65 @@ const CharRace: React.FC = () => {
     { race: "Tiefling" },
   ];
 
-  
+
   const subraceToMainRaceMapping: SubraceToMainRaceMapping = {
     "Hill Dwarf": "Dwarf",
     "High Elf": "Elf",
-    Lightfoot: "Halfling",
+    "Lightfoot": "Halfling",
     "Rock Gnome": "Gnome",
   };
 
+
   const handleRaceChange = (event: SelectChangeEvent, raceName: string) => {
     const selectedValue = event.target.value as string;
-    setSelectedRace((prev) => ({ ...prev, [raceName]: selectedValue }));
+    
+    // Update Formik's values instead of local state
+    formik.setFieldValue("selectedRace", { [raceName]: selectedValue });
+
     setRaceDetails(null);
-    getRaceDetails({ variables: { raceName: selectedValue } }); // Trigger the GraphQL query
+    getRaceDetails({ variables: { raceName: selectedValue },
+    fetchPolicy: 'network-only'
+    
+    }); // Trigger the GraphQL query
     setShowModal(true);
-  };
+};
+
 
   const handleCancel = () => {
-    setSelectedRace(null); // Reset the selected race
-    setRaceDetails(null); // Reset the race details
+    setRaceDetails(null);
     setShowModal(false);
   };
 
+
   const handleRaceButtonClick = (raceName: string) => {
-    let queryRaceName = raceName; // Default to the selected race name
-
+    let queryRaceName = raceName;
+  
     if (subraceToMainRaceMapping[raceName as keyof SubraceToMainRaceMapping]) {
-      queryRaceName =
-        subraceToMainRaceMapping[raceName as keyof SubraceToMainRaceMapping];
+      queryRaceName = subraceToMainRaceMapping[raceName as keyof SubraceToMainRaceMapping];
     }
-
+  
+    // If the clicked race is the same as the previously selected one, we just open the modal
+    if (selectedRace && selectedRace[raceName] === raceName) {
+      setShowModal(true);
+      return;
+    }
+  
+    // Always refetch details and show the modal
     setSelectedRace({ [raceName]: raceName });
+    formik.setFieldValue("selectedRace", { [raceName]: raceName });
     setRaceDetails(null);
-    getRaceDetails({ variables: { raceName: queryRaceName } }); // Trigger the GraphQL query with the main race name if needed
+    getRaceDetails({ variables: { raceName: queryRaceName } });
+    console.log("Selected Race for Details:", raceName);
     setShowModal(true);
   };
+  
+  const handleModalClose = () => {
+    setSelectedRace({}); // Set to an empty object
+    setRaceDetails(null);
+    setShowModal(false);
+  };
+  
+  
 
   return (
     <Container
@@ -186,6 +211,14 @@ const CharRace: React.FC = () => {
               key={item.race}
               variant="outlined"
               onClick={() => handleRaceButtonClick(item.subrace || item.race)}
+              sx={{
+                backgroundColor: '#0C0A26',
+                color: 'white',
+                '&:hover': {
+                    backgroundColor: '#0C0A26', // Keeps the same color on hover
+                    opacity: 0.8 // Optionally, you can add a slight opacity change on hover
+                }
+            }}
             >
               {item.subrace || item.race}
             </Button>
@@ -196,7 +229,7 @@ const CharRace: React.FC = () => {
       {showModal && (
         <Modal
           open={showModal}
-          onClose={handleCancel}
+          onClose={handleModalClose}
           sx={{
             display: "flex",
             alignItems: "center",
@@ -211,17 +244,21 @@ const CharRace: React.FC = () => {
               width: "80vw",
               maxWidth: "400px",
               borderRadius: "8px",
-              overflowY: "auto", // Allow vertical scrolling
-              maxHeight: "70vh", // Set a maximum height
+              overflowY: "auto",
+              maxHeight: "70vh",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "1rem"  // Added a gap of 1rem between child elements
             }}
           >
-            <Typography variant="h6">{raceDetails?.name}</Typography>
+            <Typography variant="h6" textAlign="center">{raceDetails?.name}</Typography>
 
-            <Typography variant="subtitle1">Traits:</Typography>
+            <Typography variant="subtitle1" textAlign="center">Traits:</Typography>
             {raceDetails?.traits.map((trait: Trait) => (
               <div key={trait.name}>
-                <Typography variant="h6">{trait.name}</Typography>
-                <Typography variant="body2">{trait.desc[0]}</Typography>
+                <Typography variant="h6" textAlign="center">{trait.name}</Typography>
+                <Typography variant="body2" textAlign="center">{trait.desc[0]}</Typography>
               </div>
             ))}
             <Box
@@ -229,21 +266,28 @@ const CharRace: React.FC = () => {
                 display: "flex",
                 justifyContent: "space-between",
                 marginTop: "1rem",
+                width: '100%', 
               }}
             >
               <Button variant="outlined" onClick={handleCancel}>
                 Cancel
               </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={async (e) => {
-                  e.preventDefault();
-                  await formik.submitForm();
-                }}
-              >
+              <Button 
+                variant="contained" 
+                color="primary" 
+                type="submit" 
+                onClick={formik.submitForm}
+                sx={{
+                  backgroundColor: '#0C0A26',
+                  color: 'white',
+                  '&:hover': {
+                      backgroundColor: '#0C0A26', // Keeps the same color on hover
+                      opacity: 0.8 // Optionally, you can add a slight opacity change on hover
+                  }
+              }}
+            >
                 Choose Race
-              </Button>
+            </Button>
             </Box>
           </Box>
         </Modal>

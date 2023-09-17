@@ -2,7 +2,7 @@ import { createContext, useState, useContext, ReactNode } from "react";
 
 interface CharacterData {
     name: string;
-    hitpointType: string;
+    profilePic: string;
     race: string;
     class: string;
     abilities: number[];
@@ -11,7 +11,7 @@ interface CharacterData {
 
 const defaultCharacterData: CharacterData = {
     name: '',
-    hitpointType: '',
+    profilePic: '',
     race: '',
     class: '',
     abilities: [],

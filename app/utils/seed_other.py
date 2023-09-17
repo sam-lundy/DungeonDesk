@@ -1,5 +1,5 @@
 from app.models import db
-from app.models import AbilityScore
+from app.models import AbilityScore, Equipment
 import requests
 import time
 
@@ -7,7 +7,6 @@ import time
 MAX_RETRIES = 3
 WAIT_TIME = 5   # in seconds
 BASE_API_URL = "https://www.dnd5eapi.co/api"
-
 
 
 def fetch_data(endpoint):
@@ -29,7 +28,6 @@ def fetch_data(endpoint):
                 return None
 
 
-
 def seed_ability_scores():
     ability_scores = [
         {"name": "STR", "full_name": "Strength"},
@@ -46,4 +44,25 @@ def seed_ability_scores():
             new_score = AbilityScore(name=score['name'], full_name=score['full_name'])
             db.session.add(new_score)
     
+    db.session.commit()
+
+
+def seed_equipment():
+    # Fetch equipment data from the API
+    response = fetch_data("equipment")
+
+    if not response or 'results' not in response:
+        print("No equipment data fetched.")
+        return
+
+    for equipment in response['results']:
+        existing_equipment = Equipment.query.filter_by(name=equipment['name']).first()
+        
+        if not existing_equipment:
+            new_equipment = Equipment(
+                name=equipment['name'],
+                description=equipment['index']
+            )
+            db.session.add(new_equipment)
+
     db.session.commit()

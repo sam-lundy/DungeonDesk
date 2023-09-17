@@ -6,7 +6,7 @@ from flask_cors import CORS
 from .utils.firebase_utils import initialize_firebase
 from .utils.seed_race import seed_races, seed_langs_and_traits
 from .utils.seed_class import seed_classes
-from .utils.seed_other import seed_ability_scores
+from .utils.seed_other import seed_ability_scores, seed_equipment
 from flask.cli import with_appcontext
 import click
 
@@ -26,9 +26,13 @@ def create_app():
 
     from app.blueprints.authent import authent
     from app.blueprints.profile import profile
+    from app.blueprints.new_char import new_char
+    from app.blueprints.get_equip import get_equip
 
     app.register_blueprint(authent, url_prefix='/api')
     app.register_blueprint(profile, url_prefix='/api')
+    app.register_blueprint(new_char, url_prefix='/api')
+    app.register_blueprint(get_equip, url_prefix='/api')
 
     @app.cli.command("seed-races")
     def seed_db_command():
@@ -49,6 +53,7 @@ def create_app():
     def seed_db_command():
         """Seeds the database with character class data from the DND API."""
         seed_ability_scores()
-        print("Database abilities seeded!")
+        seed_equipment()
+        print("Database abilities and equipment seeded!")
 
     return app

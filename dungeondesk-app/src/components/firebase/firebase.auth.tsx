@@ -35,26 +35,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     useEffect(() => {
-        // Listen for authentication state changes
         const unsubscribe = auth.onAuthStateChanged(async user => {
             if (user) {
                 const extendedInfo = await fetchUserFromDatabase(user.uid);
-                const newUserData = {
-                    uid: user.uid,
-                    email: user.email,
-                    username: extendedInfo.username,
-                    dateCreated: extendedInfo.dateCreated,
-                    timezone: extendedInfo.timezone,
-                    location: extendedInfo.location,
-                    bio: extendedInfo.bio,
-                    profilePicURL: extendedInfo.profile_image,
-                };
-
-                // If currentUser is null or the data has changed, update the state.
-                if (!currentUser || !isUserDataEqual(newUserData, currentUser)) {
-                    setCurrentUser(newUserData);
+    
+                // Check if extendedInfo is not null before accessing its properties
+                if (extendedInfo) {
+                    const newUserData = {
+                        uid: user.uid,
+                        email: user.email,
+                        username: extendedInfo.username,
+                        dateCreated: extendedInfo.dateCreated,
+                        timezone: extendedInfo.timezone,
+                        location: extendedInfo.location,
+                        bio: extendedInfo.bio,
+                        profilePicURL: extendedInfo.profile_image,
+                    };
+    
+                    setCurrentUser(prevUser => {
+                        if (!prevUser || !isUserDataEqual(newUserData, prevUser)) {
+                            return newUserData;
+                        }
+                        return prevUser;
+                    });
                 }
-
+    
             } else {
                 setCurrentUser(null);
             }
@@ -62,7 +67,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
     
         return () => unsubscribe();
-    }, [currentUser]); // We add currentUser to the dependency array to ensure the effect re-runs when currentUser changes
+    }, []); // Removed currentUser from the dependency array
+    
 
 
     const contextValue = useMemo(() => ({ currentUser }), [currentUser]);

@@ -1,17 +1,7 @@
-import React, { useContext, useState, useEffect, ChangeEvent } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../firebase/firebase.auth.tsx";
 import { Link } from "react-router-dom";
-import {
-  Container,
-  Typography,
-  Button,
-  Avatar,
-  Grid,
-  Divider,
-  IconButton,
-  Tooltip,
-  Box,
-} from "@mui/material";
+import { Container, Typography, Button, Avatar, Box } from "@mui/material";
 
 interface Character {
   id: string;
@@ -19,26 +9,61 @@ interface Character {
   imageUrl: string;
 }
 
-const mockCharacters: Character[] = [
-  {
-    id: "1",
-    name: "Aragon",
-    imageUrl: "https://example.com/aragon.jpg",
-  },
-  {
-    id: "2",
-    name: "Legolas",
-    imageUrl: "https://example.com/legolas.jpg",
-  },
-  // ... Add more mock characters as needed
-];
-
 const Characters: React.FC = () => {
-  const characters = mockCharacters;
+  const context = useContext(AuthContext);
+  if (!context) {
+      throw new Error("AuthContext must be used within an AuthProvider");
+  }
+  const { currentUser } = context;
+  const [characters, setCharacters] = useState<Character[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchCharacters() {
+      if (currentUser) {
+          try {
+              const endpoint = "http://localhost:5000/api/get-characters";
+              const response = await fetch(endpoint, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'uid': currentUser.uid
+                },
+              });
+  
+              if (response.status === 404) {
+                  // If no characters are found, set an empty list and return.
+                  setCharacters([]);
+                  return;
+              }
+  
+              if (!response.ok) {
+                  throw new Error("Failed to fetch characters.");
+              }
+  
+              const data = await response.json();
+              if (isMounted) {
+                  setCharacters(data);
+              }
+  
+          } catch (error: any) {
+              if (error.name !== 'AbortError') {
+                  console.error("Error fetching characters:", error);
+              }
+          }
+      }
+  }
+  
+    
+    fetchCharacters();
+
+}, [currentUser]);
+
+  const canCreateCharacter = characters.length < 4;
 
   return (
     <Container>
-      {/* Top content */}
       <Box
         sx={{
           display: "flex",
@@ -53,14 +78,16 @@ const Characters: React.FC = () => {
           color="primary"
           component={Link}
           to="/character-create"
+          disabled={!canCreateCharacter}
         >
           Create
         </Button>
+        {!canCreateCharacter && <Typography variant="body2" color="error">You've reached the maximum number of characters allowed.</Typography>}
       </Box>
 
       <Typography variant="body1">Slots used: {characters.length}/4</Typography>
 
-      {/* Characters grid */}
+
       <Box
         sx={{
           display: "flex",

@@ -18,16 +18,17 @@ class User(db.Model):
 
 class CharacterSheet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    race_name = db.Column(db.String, nullable=False)
-    class_name = db.Column(db.String, nullable=False)
-    level = db.Column(db.Integer, nullable=False)
+    name = db.Column(db.String(80), nullable=False)
+    race_name = db.Column(db.String(50), nullable=False)
+    class_name = db.Column(db.String(50), nullable=False)
+    level = db.Column(db.Integer, nullable=False, default=1)
     strength = db.Column(db.Integer, nullable=False)
     dexterity = db.Column(db.Integer, nullable=False)
     constitution = db.Column(db.Integer, nullable=False)
     intelligence = db.Column(db.Integer, nullable=False)
     wisdom = db.Column(db.Integer, nullable=False)
     charisma = db.Column(db.Integer, nullable=False)
+    characterPic = db.Column(db.String(255), nullable=True)
     user_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False, index=True)
 
 
@@ -35,6 +36,7 @@ class CharacterEquipments(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     character_id = db.Column(db.Integer, db.ForeignKey('character_sheet.id'), nullable=False)
     equipment_id = db.Column(db.Integer, db.ForeignKey('equipment.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False, default=1)
 
 
 race_ability_bonuses = db.Table('race_ability_bonuses',

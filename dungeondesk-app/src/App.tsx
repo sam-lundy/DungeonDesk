@@ -7,18 +7,20 @@ import Register from './components/firebase/firebaseRegister';
 import Navigation from './components/navigation/Navigation';
 import Dashboard from './components/dashboard/Dashboard';
 import Characters from './components/characters/Characters';
-// import CharSheet from './components/Characters/CharSheet.tsx';
+import CharSheet from './components/characters/CharSheet';
 import CharacterCreate from './components/characters/CharacterCreate';
 import CharRace from './components/characters/CharRace';
 import CharClass from './components/characters/CharClass';
 import CharAbilities from './components/characters/CharAbilities';
 import CharEquip from './components/characters/CharEquip';
+import CharPreview from './components/characters/CharPreview';
 import { CharacterCreationProvider } from './components/characters/CharCreationContext';
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import AppDrawer from './components/navigation/AppDrawer';
 import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
 import { Box } from '@mui/material';
 import UserProfile from './components/profile/UserProfile';
+
 
 
 const client = new ApolloClient({
@@ -90,6 +92,7 @@ const App = () => {
                   <Route path='/register' element={<Register />} />
                   <Route path='/dashboard' element={<Dashboard />} />
                   <Route path='/characters' element={<Characters />} />
+                  {/* <Route path='/character-sheet' element={<CharSheet />} /> */}
                   <Route path='/character-create/*' element={
                     <CharacterCreationProvider>
                       <Routes>
@@ -98,6 +101,7 @@ const App = () => {
                           <Route path='class' element={<CharClass />} />
                           <Route path='abilities' element={<CharAbilities />} />
                           <Route path='equipment' element={<CharEquip />} />
+                          <Route path='preview' element={<CharPreview />} />
                       </Routes>
                     </CharacterCreationProvider>
                   }/>
