@@ -123,7 +123,7 @@ def get_characters():
 
     # Convert the list of characters to a list of dictionaries to return as JSON
     character_data = [{
-        "id": str(character.id),
+        "id": character.id,
         "name": character.name,
         "imageUrl": character.characterPic or "default_image_url"  # Provide a default image URL if none exists
     } for character in characters]
@@ -134,4 +134,33 @@ def get_characters():
         "characters": []
     })
 
+    return jsonify(character_data)
+
+
+@profile.route('/get-character/<int:character_id>', methods=['GET'])
+def get_character(character_id):
+    print(f"Accessing get_character route with ID: {character_id}")
+    character = CharacterSheet.query.get(character_id)
+
+    if not character:
+        return jsonify({"error": "Character not found."}), 404
+
+    # Convert the character to a dictionary to return as JSON
+    character_data = {
+        "id": character.id,
+        "name": character.name,
+        "race": character.race_name,
+        "class": character.class_name,
+        "level": character.level,
+        "abilityScores": {
+            "strength": character.strength,
+            "dexterity": character.dexterity,
+            "constitution": character.constitution,
+            "intelligence": character.intelligence,
+            "wisdom": character.wisdom,
+            "charisma": character.charisma
+        },
+        "imageUrl": character.characterPic or "default_image_url" 
+    }
+    print(character_data)
     return jsonify(character_data)

@@ -7,7 +7,7 @@ import Register from './components/firebase/firebaseRegister';
 import Navigation from './components/navigation/Navigation';
 import Dashboard from './components/dashboard/Dashboard';
 import Characters from './components/characters/Characters';
-import CharSheet from './components/characters/CharSheet';
+import CharacterSheet from './components/characters/CharSheet';
 import CharacterCreate from './components/characters/CharacterCreate';
 import CharRace from './components/characters/CharRace';
 import CharClass from './components/characters/CharClass';
@@ -92,7 +92,7 @@ const App = () => {
                   <Route path='/register' element={<Register />} />
                   <Route path='/dashboard' element={<Dashboard />} />
                   <Route path='/characters' element={<Characters />} />
-                  {/* <Route path='/character-sheet' element={<CharSheet />} /> */}
+                  <Route path="/character-sheet/:characterId" element={<CharacterSheet />} />
                   <Route path='/character-create/*' element={
                     <CharacterCreationProvider>
                       <Routes>

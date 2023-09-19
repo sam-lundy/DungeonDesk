@@ -62,6 +62,7 @@ const Characters: React.FC = () => {
 
   const canCreateCharacter = characters.length < 4;
 
+
   return (
     <Container>
       <Box
@@ -98,41 +99,44 @@ const Characters: React.FC = () => {
           marginTop: "2rem",
         }}
       >
-        {characters.map((character) => (
-          <Box
-            key={character.id}
-            sx={{
-              width: "240px",
-              height: "320px",
-              border: "1px solid #0c0a26",
-              borderRadius: "8px",
-              padding: "1rem",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
-            <Avatar
-              src={character.imageUrl}
-              sx={{ width: "120px", height: "120px" }}
-            />
-            <Typography variant="h6" sx={{ marginTop: "1rem" }}>
-              {character.name}
-            </Typography>
-            <Box sx={{ marginTop: "auto" }}>
+      {characters.map((character) => (
+        <Box
+          key={character.id}
+          sx={{
+            width: "240px",
+            height: "320px",
+            border: "1px solid #0c0a26",
+            borderRadius: "8px",
+            padding: "1rem",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <Avatar
+            src={character.imageUrl}
+            sx={{ width: "120px", height: "120px" }}
+          />
+          <Typography variant="h6" sx={{ marginTop: "1rem" }}>
+            {character.name}
+          </Typography>
+          <Box sx={{ marginTop: "auto" }}>
+            {/* Wrap the "View" button with Link */}
+            <Link to={`/character-sheet/${character.id}`}>
               <Button variant="outlined" color="primary">
                 View
               </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                sx={{ marginLeft: "0.5rem" }}
-              >
-                Delete
-              </Button>
-            </Box>
+            </Link>
+            <Button
+              variant="outlined"
+              color="secondary"
+              sx={{ marginLeft: "0.5rem" }}
+            >
+              Delete
+            </Button>
           </Box>
-        ))}
+        </Box>
+      ))}
       </Box>
     </Container>
   );
