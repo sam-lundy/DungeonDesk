@@ -57,8 +57,8 @@ const CharacterSheet: React.FC = () => {
           <div className="flex mb-6">
             <img src={character.imageUrl || "default_image_url"} alt="Character" className="w-32 h-32 rounded-full mr-6" />
             <div className="flex-grow">
-              <h1 className="text-2xl font-bold mb-2">{character.name || "Unnamed"}</h1>
-              <div className="grid grid-cols-2 gap-2">
+              <h1 className="text-2xl font-bold mb-2 text-slate-100">{character.name || "Unnamed"}</h1>
+              <div className="grid grid-cols-2 gap-2 text-slate-100">
                 <span>Class & Level: {character.class || "Unknown"} {character.level || "?"}</span>
                 <span>Background: {character.background || "Unknown"}</span>
                 <span>Player Name: {character.player_name || "Unknown"}</span>
@@ -70,7 +70,7 @@ const CharacterSheet: React.FC = () => {
           </div>
 
 
-        <div className="flex space-x-8 -space-y-4 mb-16">
+        <div className="flex space-x-8 -space-y-4 mb-10">
 
           {/* Ability Scores */}
           <div className="flex-grow grid grid-cols-6 gap-2">
@@ -127,7 +127,7 @@ const CharacterSheet: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex space-x-8 mb-6">
+        <div className="flex space-x-12 p-4 mb-6">
 
           {/* Saving Throws */}
           <div className="flex flex-col space-y-2 bg-indigo-100 p-4 rounded">
@@ -178,10 +178,7 @@ const CharacterSheet: React.FC = () => {
 
             {/* Left Section: Proficiencies, Armor, etc. */}
             <div className="flex flex-col space-y-6 w-1/3">
-              <div className="bg-indigo-100 p-4 rounded">
-                <h2 className="text-sm font-semibold mb-2">Proficiencies and Languages</h2>
-                <textarea className="w-full p-2 border rounded" rows={3}></textarea>
-              </div>
+                <h2 className="text-sm text-slate-100 font-semibold mb-2">Proficiencies and Languages</h2>
               {['Armor', 'Weapons', 'Tools', 'Languages'].map((item) => (
                 <div key={item} className="bg-indigo-100 p-4 rounded">
                   <h2 className="text-sm font-semibold mb-2">{item}</h2>
@@ -191,9 +188,9 @@ const CharacterSheet: React.FC = () => {
             </div>
 
             {/* Right Section: Skills */}
-            <div className="flex-grow bg-indigo-100 p-4 rounded">
-              <h2 className="text-base font-semibold mb-4">Skills</h2>
-              <div className="grid grid-cols-3 gap-4">
+            <div className="flex-grow bg-indigo-100 p-12 rounded">
+              <h2 className="text-base font-semibold mb-20">Skills</h2>
+              <div className="grid grid-cols-3 ml-20 gap-4">
                 {[
                   ['Acrobatics', 'DEX'], ['Animal Handling', 'WIS'], ['Arcana', 'INT'],
                   ['Athletics', 'STR'], ['Deception', 'CHA'], ['History', 'INT'],

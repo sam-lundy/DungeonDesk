@@ -27,26 +27,26 @@ def fetch_data(endpoint):
                 return None
 
 
-def seed_ability_scores(class_data):
-    return [AbilityScore.query.filter_by(name=ability['name']).first() for ability in class_data['saving_throws']]
-
 
 def seed_classes():
-    classes_list = fetch_data('classes')  # Assuming the endpoint gives a list of all classes
+    classes_list = fetch_data('classes')  
 
     for class_info in classes_list['results']:
         class_data = fetch_data('classes/' + class_info['index'])
         
         existing_class = Classes.query.filter_by(name=class_data['name']).first()
         if not existing_class:
+            # Extract default proficiencies
+            default_profs = [prof['name'] for prof in class_data['proficiencies']]
+            # Extract saving throws
+            saving_throws_list = [st['name'] for st in class_data['saving_throws']]
+            
             new_class = Classes(
                 name=class_data['name'],
                 hit_dice=f"d{class_data['hit_die']}",
-                description=class_data.get('description', '')
+                default_proficiencies=default_profs,
+                saving_throws=saving_throws_list
             )
-            
-            saving_throws = [AbilityScore.query.filter_by(name=ability['name']).first() for ability in class_data['saving_throws']]
-            new_class.saving_throws = saving_throws
             
             db.session.add(new_class)
 
@@ -54,5 +54,5 @@ def seed_classes():
                 new_subclass = SubClass(name=subclass_data['name'], parent_class=new_class)
                 db.session.add(new_subclass)
 
-    # Commit once after processing all classes and their subclasses
     db.session.commit()
+

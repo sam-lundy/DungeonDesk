@@ -1,8 +1,10 @@
 from . import new_char
 from flask import request, jsonify
-from ...models import db, CharacterSheet, CharacterEquipments
+from ...models import db, CharacterSheet, CharacterEquipments, AbilityModifiers
 from firebase_admin import auth
 from werkzeug.utils import secure_filename
+from app.utils.calculate_hp import calculate_hp
+from app.utils.ability_bonuses import add_racial_bonuses_calc_mods
 import os
 import boto3
 
@@ -17,43 +19,76 @@ s3 = boto3.client(
     aws_secret_access_key=S3_SECRET
 )
 
+
 @new_char.route('/save-character', methods=['POST'])
 def save_character():
     data = request.json
     user_uid = request.headers.get('uid')
 
     existing_characters_count = CharacterSheet.query.filter_by(user_uid=user_uid).count()
-
     if existing_characters_count >= 4:
         return jsonify({"error": "You have reached the maximum limit of 4 characters."}), 400
 
-
+    # Authorization token
     token = request.headers.get('Authorization').split('Bearer ')[1]
-
     decoded_token = auth.verify_id_token(token)
     uid = decoded_token['uid']
-    
+
+    # Proficiency bonus calculation
+    prof_bonus = 1 + (data['level'] // 4)
+
+    # Calculate armor class
+    armor_class = (data['dexterity'] - 10) // 2 + 10
+
+    # Calculate max HP
+    max_hp = calculate_hp(data['class_name'], data['race_name'], data['level'], data['constitution'])
+
+    # Fetch racial bonuses and calculate final abilities & modifiers
+    final_abilities, ability_modifiers = add_racial_bonuses_calc_mods(data['race_name'], {
+        'strength': data['strength'],
+        'dexterity': data['dexterity'],
+        'constitution': data['constitution'],
+        'intelligence': data['intelligence'],
+        'wisdom': data['wisdom'],
+        'charisma': data['charisma']
+    })
+
+    # Create the new character entry
     new_character = CharacterSheet(
         name=data['name'],
         race_name=data['race_name'],
         class_name=data['class_name'],
         level=data['level'],
-        strength=data['strength'],
-        constitution=data['constitution'],
-        dexterity=data['dexterity'],
-        intelligence=data['intelligence'],
-        wisdom=data['wisdom'],
-        charisma=data['charisma'],
-        characterPic=data.get('profile_pic', ''),
+        strength=final_abilities['strength'],
+        dexterity=final_abilities['dexterity'],
+        constitution=final_abilities['constitution'],
+        intelligence=final_abilities['intelligence'],
+        wisdom=final_abilities['wisdom'],
+        charisma=final_abilities['charisma'],
+        prof_bonus=prof_bonus,
+        armor_class=armor_class,
+        current_hp=data.get('current_hp', max_hp),
+        max_hp=max_hp,
+        characterPic=data.get('profile_pic'),
         user_uid=data['user_uid']  
     )
 
     db.session.add(new_character)
     db.session.flush()
     character_id = new_character.id
+
+    for ability, modifier in ability_modifiers.items():
+        new_modifier = AbilityModifiers(
+        character_id=character_id,
+        name=ability,
+        value=modifier
+    )
+    db.session.add(new_modifier)
+    
     db.session.commit()
 
     return jsonify({"message": "Character saved successfully!", "characterId": character_id}), 201
+
 
 
 

@@ -1,5 +1,5 @@
 from app.models import db
-from app.models import AbilityScore, Equipment
+from app.models import AbilityScore, Equipment, Skill
 import requests
 import time
 
@@ -64,5 +64,25 @@ def seed_equipment():
                 description=equipment['index']
             )
             db.session.add(new_equipment)
+
+    db.session.commit()
+
+
+def seed_skills():
+    # Fetch equipment data from the API
+    response = fetch_data("skills")
+
+    if not response or 'results' not in response:
+        print("No skills data fetched.")
+        return
+
+    for skill in response['results']:
+        existing_skill= Skill.query.filter_by(name=skill['name']).first()
+        
+        if not existing_skill:
+            new_skill = Skill(
+                name=skill['name'],
+            )
+            db.session.add(new_skill)
 
     db.session.commit()

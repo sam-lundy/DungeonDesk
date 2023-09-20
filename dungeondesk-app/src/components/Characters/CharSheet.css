@@ -1,5 +1,6 @@
 .css-1jbf8uk {
 min-height: calc(100vh - 64px);
-height: auto;
-  }
+height: auto !important;
+
+}
   

@@ -6,7 +6,7 @@ from flask_cors import CORS
 from .utils.firebase_utils import initialize_firebase
 from .utils.seed_race import seed_races, seed_langs_and_traits
 from .utils.seed_class import seed_classes
-from .utils.seed_other import seed_ability_scores, seed_equipment
+from .utils.seed_other import seed_ability_scores, seed_equipment, seed_skills
 from flask.cli import with_appcontext
 import click
 
@@ -52,6 +52,7 @@ def create_app():
     @app.cli.command("seed-other")
     def seed_db_command():
         """Seeds the database with character class data from the DND API."""
+        seed_skills()
         seed_ability_scores()
         seed_equipment()
         print("Database abilities and equipment seeded!")

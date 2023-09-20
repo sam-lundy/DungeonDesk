@@ -61,11 +61,13 @@ def seed_races():
             db.session.add(new_race)
             db.session.flush()  # This ensures new_race gets an ID
 
-        for bonus in race_data['ability_bonuses']:
-            ability_score = AbilityScore.query.filter_by(name=bonus['ability_score']['index'].upper()).first()
-            if ability_score:
-                db.session.execute(race_ability_bonuses.insert().values(race_id=new_race.id, ability_score_id=ability_score.id, bonus=bonus['bonus']))
+            # Add ability bonuses for the main race
+            for bonus in race_data['ability_bonuses']:
+                ability_score = AbilityScore.query.filter_by(name=bonus['ability_score']['index'].upper()).first()
+                if ability_score:
+                    db.session.execute(race_ability_bonuses.insert().values(race_id=new_race.id, ability_score_id=ability_score.id, bonus=bonus['bonus']))
             
+            # Handle subraces
             if race_data['subraces']:
                 for subrace_info in race_data['subraces']:
                     subrace_data = fetch_data('subraces/' + subrace_info['index'])
@@ -74,5 +76,13 @@ def seed_races():
                         parent_race_id=new_race.id  # This is where you associate the subrace with its main race
                     )
                     db.session.add(new_subrace)
+                    db.session.flush()
+
+                    # Add ability bonuses for the subrace
+                    for bonus in subrace_data['ability_bonuses']:
+                        ability_score = AbilityScore.query.filter_by(name=bonus['ability_score']['index'].upper()).first()
+                        if ability_score:
+                            db.session.execute(race_ability_bonuses.insert().values(race_id=new_subrace.id, ability_score_id=ability_score.id, bonus=bonus['bonus']))
 
             db.session.commit()
+

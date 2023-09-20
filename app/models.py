@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import CheckConstraint, PickleType
 from datetime import datetime
 
 db = SQLAlchemy()
@@ -9,7 +10,7 @@ class User(db.Model):
     username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
-    profile_pic = db.Column(db.String(200), nullable=False, default='https://exionweb.s3.amazonaws.com/default_user_icon.png')
+    profile_pic = db.Column(db.String(255), nullable=False, default='https://exionweb.s3.amazonaws.com/default_user_icon.png')
     timezone = db.Column(db.String(50), default='UTC')
     location = db.Column(db.String(100), default='Unknown')
     bio = db.Column(db.String(1000), nullable=False, default='No bio set')
@@ -21,15 +22,26 @@ class CharacterSheet(db.Model):
     name = db.Column(db.String(80), nullable=False)
     race_name = db.Column(db.String(50), nullable=False)
     class_name = db.Column(db.String(50), nullable=False)
+    background = db.Column(db.String(50), nullable=False)
     level = db.Column(db.Integer, nullable=False, default=1)
-    strength = db.Column(db.Integer, nullable=False)
-    dexterity = db.Column(db.Integer, nullable=False)
-    constitution = db.Column(db.Integer, nullable=False)
-    intelligence = db.Column(db.Integer, nullable=False)
-    wisdom = db.Column(db.Integer, nullable=False)
-    charisma = db.Column(db.Integer, nullable=False)
-    characterPic = db.Column(db.String(255), nullable=True)
+    prof_bonus = db.Column(db.Integer, nullable=False, default=2)
+    inspiration = db.Column(db.Integer, nullable=False, default=0)
+    characterPic = db.Column(db.String(255), nullable=False, default='https://exionweb.s3.amazonaws.com/default_user_icon.png')
+    armor_class = db.Column(db.Integer, nullable=False)
+    current_hp = db.Column(db.Integer, nullable=False)
+    max_hp = db.Column(db.Integer, nullable=False)
+    character_equipments = db.relationship('CharacterEquipments', back_populates='character')
     user_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False, index=True)
+    __table_args__ = (
+        CheckConstraint('level>=1 AND level<=20', name='level_check'),
+    )
+
+
+character_ability_values = db.Table('character_ability_values',
+    db.Column('character_id', db.Integer, db.ForeignKey('character_sheet.id'), primary_key=True),
+    db.Column('ability_score_id', db.Integer, db.ForeignKey('ability_score.id'), primary_key=True),
+    db.Column('value', db.Integer, nullable=False)  # This stores the ability score value.
+)
 
 
 class CharacterEquipments(db.Model):
@@ -37,6 +49,9 @@ class CharacterEquipments(db.Model):
     character_id = db.Column(db.Integer, db.ForeignKey('character_sheet.id'), nullable=False)
     equipment_id = db.Column(db.Integer, db.ForeignKey('equipment.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False, default=1)
+    character = db.relationship('CharacterSheet', back_populates='character_equipments')
+    equipment = db.relationship('Equipment', back_populates='equipment_entries')
+
 
 
 race_ability_bonuses = db.Table('race_ability_bonuses',
@@ -44,6 +59,15 @@ race_ability_bonuses = db.Table('race_ability_bonuses',
     db.Column('ability_score_id', db.Integer, db.ForeignKey('ability_score.id')),
     db.Column('bonus', db.Integer, default=0)
 )
+
+
+class AbilityModifiers(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    character_id = db.Column(db.Integer, db.ForeignKey('character_sheet.id'), nullable=False)
+    name = db.Column(db.String(80), nullable=False)
+    value = db.Column(db.Integer, nullable=False)
+    character = db.relationship('CharacterSheet', backref=db.backref('ability_modifiers', cascade="all, delete-orphan"))
+
 
 
 class Race(db.Model):
@@ -65,19 +89,13 @@ class Trait(db.Model):
     name = db.Column(db.String, unique=True, nullable=False)
 
 
-class_saving_throws = db.Table('class_saving_throws',
-    db.Column('class_id', db.Integer, db.ForeignKey('classes.id')),
-    db.Column('ability_score_id', db.Integer, db.ForeignKey('ability_score.id'))
-)
-
-
 class Classes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, unique=True)
-    description = db.Column(db.Text, nullable=True)
-    hit_dice = db.Column(db.String, nullable=True)
+    hit_dice = db.Column(db.String, nullable=False)
+    default_proficiencies = db.Column(PickleType, nullable=True)
+    saving_throws = db.Column(PickleType, nullable=True)
     subclasses = db.relationship('SubClass', back_populates="parent_class")
-    saving_throws = db.relationship('AbilityScore', secondary=class_saving_throws, backref=db.backref('classes', lazy=True))
 
 
 class SubClass(db.Model):
@@ -97,4 +115,33 @@ class Equipment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, unique=True)
     description = db.Column(db.String, nullable=False)
-    characters = db.relationship('CharacterSheet', secondary='character_equipments', backref=db.backref('equipments', lazy=True))
+    equipment_entries = db.relationship('CharacterEquipments', back_populates='equipment')
+
+
+class Proficiency(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    proficiency_type = db.Column(db.Enum('SKILL', 'TOOL', 'LANGUAGE', name='proficiency_types'), nullable=False)  # Add more types as needed.
+
+
+class CharacterProficiencies(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    character_id = db.Column(db.Integer, db.ForeignKey('character_sheet.id'), nullable=False)
+    proficiency_id = db.Column(db.Integer, db.ForeignKey('proficiency.id'), nullable=False)
+    character = db.relationship('CharacterSheet', backref=db.backref('character_proficiencies', cascade="all, delete-orphan"))
+
+
+class Skill(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable=False)
+
+
+class CharacterSkill(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    character_id = db.Column(db.Integer, db.ForeignKey('character_sheet.id'), nullable=False)
+    skill_id = db.Column(db.Integer, db.ForeignKey('skill.id'), nullable=False)
+    modifier = db.Column(db.Integer, nullable=False)  # Modifier for this character's skill.
+    db.UniqueConstraint('character_id', 'skill_id', name='uix_character_skill_ids')
+    character = db.relationship('CharacterSheet', backref=db.backref('character_skills', cascade="all, delete-orphan"))
+
