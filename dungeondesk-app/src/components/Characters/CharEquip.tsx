@@ -36,6 +36,7 @@ const CharEquip: React.FC = () => {
     const { characterData, setCharacterData } = useCharacterCreation();
     const className = characterData.class;
     const navigate = useNavigate();
+    const [selectedForCategory, setSelectedForCategory] = useState<any>({});
     console.log(characterData)
 
     const { data, loading, error } = useQuery(GET_STARTING_EQUIPMENT_OPTIONS, {
@@ -55,7 +56,7 @@ const CharEquip: React.FC = () => {
                 equipment: values.selectedEquipment
             }));
             navigate('/character-create/preview');
-        }
+        }        
     });
 
     useEffect(() => {
@@ -63,15 +64,32 @@ const CharEquip: React.FC = () => {
             setEquipmentOptions(data.classes[0].starting_equipment_options);
         }
     }, [data]);
+    
 
-    const handleEquipmentToggle = (value: string) => {
-       if (formik.values.selectedEquipment.includes(value)) {
-           formik.setFieldValue('selectedEquipment', formik.values.selectedEquipment.filter(item => item !== value));
-       } else {
-           formik.setFieldValue('selectedEquipment', [...formik.values.selectedEquipment, value]);
-       }
+    useEffect(() => {
+        const selectedItems = Object.values(selectedForCategory);
+        formik.setFieldValue('selectedEquipment', selectedItems);
+    }, [selectedForCategory]);
+
+
+    const handleEquipmentToggle = (categoryIndex: number, value: string) => {
+        const currentSelection = selectedForCategory[categoryIndex];
+    
+        if (currentSelection === value) {
+            // If already selected, remove it
+            const updatedSelection = {...selectedForCategory};
+            delete updatedSelection[categoryIndex];
+            setSelectedForCategory(updatedSelection);
+        } else {
+            // Otherwise, set the new value
+            setSelectedForCategory({
+                ...selectedForCategory,
+                [categoryIndex]: value
+            });
+        }
     };
 
+    
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error.message}</p>;
 
@@ -124,18 +142,20 @@ const CharEquip: React.FC = () => {
             
             {data.classes[0].starting_equipment_options.map((option: EquipmentOption, index: number) => {
                 const choices = splitEquipmentChoices(option.desc);
-                
-                if (choices.length === 0) return null;  // Don't render this section if no choices
-                
+                const currentSelection = selectedForCategory[index];
+
+                if (choices.length === 0) return null;
+
                 return (
                     <Box key={index} sx={{ margin: '1rem 0' }}>
                         <Typography variant="h6">Choose {option.choose} from:</Typography>
                         <List dense>
                             {choices.map((item: string) => (
-                                <ListItemButton key={item} onClick={() => handleEquipmentToggle(item)}>
+                                <ListItemButton key={item} onClick={() => handleEquipmentToggle(index, item)}>
                                     <Checkbox
                                         edge="start"
-                                        checked={formik.values.selectedEquipment.includes(item)}
+                                        checked={currentSelection === item}
+                                        disabled={currentSelection && currentSelection !== item}
                                         tabIndex={-1}
                                         disableRipple
                                     />
@@ -146,6 +166,7 @@ const CharEquip: React.FC = () => {
                     </Box>
                 );
             })}
+
         {/* Confirm & Save Button */}
         <Button 
                 variant="contained" 

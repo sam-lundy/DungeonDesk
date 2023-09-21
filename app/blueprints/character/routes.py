@@ -1,9 +1,10 @@
-from . import get_equip
+from . import character
 from flask import request, jsonify
-from ...models import Equipment
+from ...models import db, Equipment, CharacterSheet
 from sqlalchemy import func
 
-@get_equip.route('/get-equip', methods=['POST'])
+
+@character.route('/get-equip', methods=['POST'])
 def get_equipment_ids():
     data = request.json
     if not data or "names" not in data:
@@ -28,4 +29,14 @@ def get_equipment_ids():
     print("Sending equipment mapping:", equipment_mapping)
     return jsonify(equipment_mapping)
 
+
+@character.route('/delete-character/<int:character_id>', methods=['DELETE'])
+def delete_character(character_id):
+    character = CharacterSheet.query.get(character_id)
+    if character:
+        db.session.delete(character)
+        db.session.commit()
+        return jsonify({"message": "Character deleted successfully!"}), 200
+    else:
+        return jsonify({"error": "Character not found"}), 404
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useFormik } from 'formik';
+import { useFormik, FormikErrors } from 'formik';
 import {
     Container, Typography, Box, Button,
     Select, MenuItem, FormControl, InputLabel
@@ -13,7 +13,7 @@ import { SelectChangeEvent } from '@mui/material';
 import * as Yup from 'yup';
 
 
-type Ability = 'STR' | 'CON' | 'DEX' | 'INT' | 'WIS' | 'CHA';
+type Ability = 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma';
 
 
 const calculatePointCost = (currentScore: number, desiredScore: number): number => {
@@ -27,18 +27,31 @@ const calculatePointCost = (currentScore: number, desiredScore: number): number 
 
 const createValidationSchema = (availablePoints: number) => {
     return Yup.object().shape({
+        generationType: Yup.string().required(),
         selectedScores: Yup.object().test(
             'valid-score-assignment',
             'Invalid ability scores assignment.',
             function (selectedScores) {
+                const abilityValues = Object.values(selectedScores as { [key: string]: number });
+                const uniqueValues = [...new Set(abilityValues)];
+                const expectedValues = [15, 14, 13, 12, 10, 8];
                 const { generationType } = this.parent;
-                const sum = Object.values(selectedScores as { [key: string]: number }).reduce((acc: number, curr: number) => acc + curr, 0);
 
                 if (generationType === 'standard') {
-                    return sum === 72;
+                    for (let val of abilityValues) {
+                        if (!expectedValues.includes(val)) {
+                            return false;
+                        }
+                    }
+                    return uniqueValues.length === 6;
                 } else if (generationType === 'pointBuy') {
-                    return availablePoints === 0;
+                    let totalCost = 0;
+                    for (let val of abilityValues) {
+                        totalCost += calculatePointCost(8, val);
+                    }
+                    return totalCost <= availablePoints;
                 }
+
                 return false;
             }
         )
@@ -52,24 +65,53 @@ const CharAbilities: React.FC = () => {
     const navigate = useNavigate();
     console.log(characterData)
 
-    const abilities: Ability[] = ['STR', 'CON', 'DEX', 'INT', 'WIS', 'CHA'];
+    const abilities: Ability[] = ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"];
 
     const formik = useFormik({
         initialValues: {
             generationType: 'standard',
             selectedScores: {
-                STR: 8,
-                CON: 8,
-                DEX: 8,
-                INT: 8,
-                WIS: 8,
-                CHA: 8
+                strength: 8,
+                dexterity: 8,
+                constitution: 8,
+                intelligence: 8,
+                wisdom: 8,
+                charisma: 8
             }
         },
+        validateOnChange: false,
+        validateOnBlur: false,
         validationSchema: createValidationSchema(availablePoints),
         onSubmit: () => {
-            navigate('/character-create/equipment');
-        }
+            const sum = Object.values(formik.values.selectedScores).reduce((acc, curr) => acc + curr, 0);
+            let errorMessage: FormikErrors<{ [key: string]: number }> | null = null;
+
+            if (formik.values.generationType === 'standard' && sum !== 72) {
+                errorMessage = {
+                    STR: "All ability scores must be assigned before proceeding.",
+                    CON: "All ability scores must be assigned before proceeding.",
+                    DEX: "All ability scores must be assigned before proceeding.",
+                    INT: "All ability scores must be assigned before proceeding.",
+                    WIS: "All ability scores must be assigned before proceeding.",
+                    CHA: "All ability scores must be assigned before proceeding."
+                };
+            } else if (formik.values.generationType === 'pointBuy' && availablePoints !== 0) {
+                errorMessage = {
+                    STR: "All points must be allocated before proceeding.",
+                    CON: "All points must be allocated before proceeding.",
+                    DEX: "All points must be allocated before proceeding.",
+                    INT: "All points must be allocated before proceeding.",
+                    WIS: "All points must be allocated before proceeding.",
+                    CHA: "All points must be allocated before proceeding."
+                };
+            }            
+            
+            if (errorMessage) {
+                formik.setErrors({ selectedScores: errorMessage });
+            } else {
+                navigate('/character-create/equipment');
+            }            
+        }        
     });
     
 
@@ -81,8 +123,6 @@ const CharAbilities: React.FC = () => {
             setAvailablePoints(27);
         }
     }, [formik.values.generationType]);
-
-
 
     
     const getOptionsForAbility = (type: 'standard' | 'pointBuy', currentAbility: Ability) => {
@@ -96,14 +136,15 @@ const CharAbilities: React.FC = () => {
         return [];
     };
 
+
     const handleScoreChange = (event: SelectChangeEvent<number>, ability: Ability) => {
         const newScore = event.target.value as number;
         const oldScore = formik.values.selectedScores[ability];
-    
+        
         if (formik.values.generationType === 'pointBuy') {
             const costDifference = calculatePointCost(8, newScore) - calculatePointCost(8, oldScore);
             const newAvailablePoints = availablePoints - costDifference;
-    
+        
             if (newAvailablePoints >= 0) {
                 formik.setFieldValue(`selectedScores.${ability}`, newScore);
                 setAvailablePoints(newAvailablePoints);
@@ -111,15 +152,17 @@ const CharAbilities: React.FC = () => {
         } else {
             formik.setFieldValue(`selectedScores.${ability}`, newScore);
         }
-
-        const abilitiesArray = Object.values(formik.values.selectedScores);
     
-        // Update the characterData with the latest abilities from Formik
+        formik.setFieldTouched(`selectedScores.${ability}`, true); // Mark the field as touched
+    
+        const abilitiesArray = abilities.map(ability => formik.values.selectedScores[ability]);
+
         setCharacterData(prevData => ({
             ...prevData,
             abilities: abilitiesArray
         }));
-    };
+        
+    };    
     
 
     const increaseScore = (ability: Ability) => {
@@ -138,6 +181,7 @@ const CharAbilities: React.FC = () => {
             }));
         }
     };
+
 
     const decreaseScore = (ability: Ability) => {
         const currentScore = formik.values.selectedScores[ability];
@@ -176,11 +220,9 @@ const CharAbilities: React.FC = () => {
                         >
                             <MenuItem value="standard">Standard Array</MenuItem>
                             <MenuItem value="pointBuy">Point Buy</MenuItem>
-                            <form key={formik.values.generationType} onSubmit={formik.handleSubmit}></form>
                         </Select>
                     </FormControl>
                 </Box>
-
 
                 <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '1rem', gap: 2 }}>
                     {formik.values.generationType === 'pointBuy' && (
@@ -214,7 +256,7 @@ const CharAbilities: React.FC = () => {
                                     ...(formik.errors.selectedScores && { '& .MuiOutlinedInput-root': { borderColor: 'red' } })  // Add this line
                                 }}
                             >
-                                <InputLabel>{ability}</InputLabel>
+                                <InputLabel>{ability.charAt(0).toUpperCase() + ability.slice(1)}</InputLabel>
                                 <Select 
                                     name={`selectedScores.${ability}`} 
                                     value={formik.values.selectedScores[ability]}
@@ -243,12 +285,10 @@ const CharAbilities: React.FC = () => {
                     ))}
                 </Box>
 
-                {formik.errors.selectedScores && 
+                {formik.submitCount > 0 && formik.errors.selectedScores && 
                     <div>{formik.errors.selectedScores as string}</div>
                 }
 
-
-        
                 <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
                     <Button 
                         type="submit" 

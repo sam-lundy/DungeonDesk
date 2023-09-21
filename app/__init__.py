@@ -3,10 +3,10 @@ from config import Config
 from flask_migrate import Migrate
 from .models import db
 from flask_cors import CORS
-from .utils.firebase_utils import initialize_firebase
-from .utils.seed_race import seed_races, seed_langs_and_traits
-from .utils.seed_class import seed_classes
-from .utils.seed_other import seed_ability_scores, seed_equipment, seed_skills
+from .utils.firebase.firebase_utils import initialize_firebase
+from .utils.seeds.seed_race import seed_races, seed_langs_and_traits
+from .utils.seeds.seed_class import seed_classes
+from .utils.seeds.seed_other import seed_ability_scores, seed_equipment, seed_skills
 from flask.cli import with_appcontext
 import click
 
@@ -27,12 +27,12 @@ def create_app():
     from app.blueprints.authent import authent
     from app.blueprints.profile import profile
     from app.blueprints.new_char import new_char
-    from app.blueprints.get_equip import get_equip
+    from app.blueprints.character import character
 
     app.register_blueprint(authent, url_prefix='/api')
     app.register_blueprint(profile, url_prefix='/api')
     app.register_blueprint(new_char, url_prefix='/api')
-    app.register_blueprint(get_equip, url_prefix='/api')
+    app.register_blueprint(character, url_prefix='/api')
 
     @app.cli.command("seed-races")
     def seed_db_command():

@@ -1,17 +1,17 @@
 """empty message
 
-Revision ID: 20f5aff9bdb5
-Revises: 5c8001020a3b
-Create Date: 2023-09-16 19:18:06.782567
+Revision ID: b3b933e4f127
+Revises: 
+Create Date: 2023-09-20 01:08:32.036711
 
 """
 from alembic import op
 import sqlalchemy as sa
-
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '20f5aff9bdb5'
-down_revision = '5c8001020a3b'
+revision = 'b3b933e4f127'
+down_revision = None
 branch_labels = None
 depends_on = None
 
@@ -28,8 +28,9 @@ def upgrade():
     op.create_table('classes',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
-    sa.Column('description', sa.Text(), nullable=True),
-    sa.Column('hit_dice', sa.String(), nullable=True),
+    sa.Column('hit_dice', sa.String(), nullable=False),
+    sa.Column('default_proficiencies', postgresql.JSON(astext_type=sa.Text()), nullable=True),
+    sa.Column('saving_throws', postgresql.JSON(astext_type=sa.Text()), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
@@ -47,6 +48,13 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
+    op.create_table('proficiency',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=80), nullable=False),
+    sa.Column('description', sa.Text(), nullable=True),
+    sa.Column('proficiency_type', sa.Enum('SKILL', 'TOOL', 'LANGUAGE', name='proficiency_types'), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('race',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
@@ -54,6 +62,11 @@ def upgrade():
     sa.ForeignKeyConstraint(['parent_race_id'], ['race.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
+    )
+    op.create_table('skill',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=80), nullable=False),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('trait',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -66,7 +79,7 @@ def upgrade():
     sa.Column('username', sa.String(), nullable=False),
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('date_created', sa.DateTime(), nullable=True),
-    sa.Column('profile_pic', sa.String(length=200), nullable=False),
+    sa.Column('profile_pic', sa.String(length=255), nullable=False),
     sa.Column('timezone', sa.String(length=50), nullable=True),
     sa.Column('location', sa.String(length=100), nullable=True),
     sa.Column('bio', sa.String(length=1000), nullable=False),
@@ -79,27 +92,22 @@ def upgrade():
     sa.Column('name', sa.String(length=80), nullable=False),
     sa.Column('race_name', sa.String(length=50), nullable=False),
     sa.Column('class_name', sa.String(length=50), nullable=False),
+    sa.Column('background', sa.String(length=50), nullable=False),
     sa.Column('level', sa.Integer(), nullable=False),
-    sa.Column('strength', sa.Integer(), nullable=False),
-    sa.Column('dexterity', sa.Integer(), nullable=False),
-    sa.Column('constitution', sa.Integer(), nullable=False),
-    sa.Column('intelligence', sa.Integer(), nullable=False),
-    sa.Column('wisdom', sa.Integer(), nullable=False),
-    sa.Column('charisma', sa.Integer(), nullable=False),
-    sa.Column('characterPic', sa.String(length=255), nullable=True),
+    sa.Column('prof_bonus', sa.Integer(), nullable=False),
+    sa.Column('inspiration', sa.Integer(), nullable=False),
+    sa.Column('characterPic', sa.String(length=255), nullable=False),
+    sa.Column('armor_class', sa.Integer(), nullable=False),
+    sa.Column('current_hp', sa.Integer(), nullable=False),
+    sa.Column('max_hp', sa.Integer(), nullable=False),
     sa.Column('user_uid', sa.String(), nullable=False),
+    sa.CheckConstraint('level>=1 AND level<=20', name='level_check'),
     sa.ForeignKeyConstraint(['user_uid'], ['user.uid'], ),
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('character_sheet', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_character_sheet_user_uid'), ['user_uid'], unique=False)
 
-    op.create_table('class_saving_throws',
-    sa.Column('class_id', sa.Integer(), nullable=True),
-    sa.Column('ability_score_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['ability_score_id'], ['ability_score.id'], ),
-    sa.ForeignKeyConstraint(['class_id'], ['classes.id'], )
-    )
     op.create_table('race_ability_bonuses',
     sa.Column('race_id', sa.Integer(), nullable=True),
     sa.Column('ability_score_id', sa.Integer(), nullable=True),
@@ -115,6 +123,22 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
+    op.create_table('ability_modifiers',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('character_id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=80), nullable=False),
+    sa.Column('value', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['character_id'], ['character_sheet.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('character_ability_values',
+    sa.Column('character_id', sa.Integer(), nullable=False),
+    sa.Column('ability_score_id', sa.Integer(), nullable=False),
+    sa.Column('value', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['ability_score_id'], ['ability_score.id'], ),
+    sa.ForeignKeyConstraint(['character_id'], ['character_sheet.id'], ),
+    sa.PrimaryKeyConstraint('character_id', 'ability_score_id')
+    )
     op.create_table('character_equipments',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('character_id', sa.Integer(), nullable=False),
@@ -124,22 +148,44 @@ def upgrade():
     sa.ForeignKeyConstraint(['equipment_id'], ['equipment.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('character_proficiencies',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('character_id', sa.Integer(), nullable=False),
+    sa.Column('proficiency_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['character_id'], ['character_sheet.id'], ),
+    sa.ForeignKeyConstraint(['proficiency_id'], ['proficiency.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('character_skill',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('character_id', sa.Integer(), nullable=False),
+    sa.Column('skill_id', sa.Integer(), nullable=False),
+    sa.Column('modifier', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['character_id'], ['character_sheet.id'], ),
+    sa.ForeignKeyConstraint(['skill_id'], ['skill.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     # ### end Alembic commands ###
 
 
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_table('character_skill')
+    op.drop_table('character_proficiencies')
     op.drop_table('character_equipments')
+    op.drop_table('character_ability_values')
+    op.drop_table('ability_modifiers')
     op.drop_table('sub_class')
     op.drop_table('race_ability_bonuses')
-    op.drop_table('class_saving_throws')
     with op.batch_alter_table('character_sheet', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_character_sheet_user_uid'))
 
     op.drop_table('character_sheet')
     op.drop_table('user')
     op.drop_table('trait')
+    op.drop_table('skill')
     op.drop_table('race')
+    op.drop_table('proficiency')
     op.drop_table('language')
     op.drop_table('equipment')
     op.drop_table('classes')

@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import CheckConstraint, PickleType
+from sqlalchemy import CheckConstraint
+from sqlalchemy.dialects.postgresql import JSON
 from datetime import datetime
 
 db = SQLAlchemy()
@@ -14,7 +15,7 @@ class User(db.Model):
     timezone = db.Column(db.String(50), default='UTC')
     location = db.Column(db.String(100), default='Unknown')
     bio = db.Column(db.String(1000), nullable=False, default='No bio set')
-    character_sheets = db.relationship('CharacterSheet', backref='user', lazy=True)
+    character_sheets = db.relationship('CharacterSheet', backref='user', cascade="all, delete-orphan", lazy=True)
 
 
 class CharacterSheet(db.Model):
@@ -22,7 +23,8 @@ class CharacterSheet(db.Model):
     name = db.Column(db.String(80), nullable=False)
     race_name = db.Column(db.String(50), nullable=False)
     class_name = db.Column(db.String(50), nullable=False)
-    background = db.Column(db.String(50), nullable=False)
+    background = db.Column(db.String(40), nullable=False, default='No background set')
+    alignment = db.Column(db.String(40), nullable=False, default='Neutral')
     level = db.Column(db.Integer, nullable=False, default=1)
     prof_bonus = db.Column(db.Integer, nullable=False, default=2)
     inspiration = db.Column(db.Integer, nullable=False, default=0)
@@ -30,7 +32,7 @@ class CharacterSheet(db.Model):
     armor_class = db.Column(db.Integer, nullable=False)
     current_hp = db.Column(db.Integer, nullable=False)
     max_hp = db.Column(db.Integer, nullable=False)
-    character_equipments = db.relationship('CharacterEquipments', back_populates='character')
+    character_equipments = db.relationship('CharacterEquipments', cascade="all, delete-orphan", back_populates='character')
     user_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False, index=True)
     __table_args__ = (
         CheckConstraint('level>=1 AND level<=20', name='level_check'),
@@ -38,15 +40,15 @@ class CharacterSheet(db.Model):
 
 
 character_ability_values = db.Table('character_ability_values',
-    db.Column('character_id', db.Integer, db.ForeignKey('character_sheet.id'), primary_key=True),
-    db.Column('ability_score_id', db.Integer, db.ForeignKey('ability_score.id'), primary_key=True),
+    db.Column('character_id', db.Integer, db.ForeignKey('character_sheet.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('ability_score_id', db.Integer, db.ForeignKey('ability_score.id', ondelete='CASCADE'), primary_key=True),
     db.Column('value', db.Integer, nullable=False)  # This stores the ability score value.
 )
 
 
 class CharacterEquipments(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    character_id = db.Column(db.Integer, db.ForeignKey('character_sheet.id'), nullable=False)
+    character_id = db.Column(db.Integer, db.ForeignKey('character_sheet.id', ondelete='CASCADE'), nullable=False)
     equipment_id = db.Column(db.Integer, db.ForeignKey('equipment.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False, default=1)
     character = db.relationship('CharacterSheet', back_populates='character_equipments')
@@ -93,8 +95,8 @@ class Classes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, unique=True)
     hit_dice = db.Column(db.String, nullable=False)
-    default_proficiencies = db.Column(PickleType, nullable=True)
-    saving_throws = db.Column(PickleType, nullable=True)
+    default_proficiencies = db.Column(JSON)
+    saving_throws = db.Column(JSON)
     subclasses = db.relationship('SubClass', back_populates="parent_class")
 
 

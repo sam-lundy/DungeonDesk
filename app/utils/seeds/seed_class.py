@@ -1,5 +1,6 @@
 from app.models import db
 from app.models import Classes, AbilityScore, SubClass
+import json
 import requests
 import time
 
@@ -36,16 +37,19 @@ def seed_classes():
         
         existing_class = Classes.query.filter_by(name=class_data['name']).first()
         if not existing_class:
-            # Extract default proficiencies
-            default_profs = [prof['name'] for prof in class_data['proficiencies']]
-            # Extract saving throws
+            # Extract saving throws first
             saving_throws_list = [st['name'] for st in class_data['saving_throws']]
+            print(saving_throws_list)
             
+            # Extract default proficiencies, excluding those in saving_throws_list
+            default_profs = [prof['name'] for prof in class_data['proficiencies'] if prof['name'] not in saving_throws_list]
+            print(default_profs)
+
             new_class = Classes(
                 name=class_data['name'],
                 hit_dice=f"d{class_data['hit_die']}",
-                default_proficiencies=default_profs,
-                saving_throws=saving_throws_list
+                default_proficiencies=json.dumps(default_profs),
+                saving_throws=json.dumps(saving_throws_list)
             )
             
             db.session.add(new_class)
@@ -54,5 +58,13 @@ def seed_classes():
                 new_subclass = SubClass(name=subclass_data['name'], parent_class=new_class)
                 db.session.add(new_subclass)
 
-    db.session.commit()
+    try:
+        db.session.commit()
+
+    except Exception as e:
+
+        print(f"Error saving class {class_data['name']}: {e}")
+        db.session.rollback()
+
+
 
