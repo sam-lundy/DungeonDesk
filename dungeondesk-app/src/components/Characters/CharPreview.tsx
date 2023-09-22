@@ -31,7 +31,6 @@ const CharPreview: React.FC = () => {
         const auth = getAuth();
         const user = auth.currentUser;
 
-
         if (!user) throw new Error("User is not authenticated.");
 
         const url = "http://localhost:5000/api/save-character";
@@ -47,14 +46,22 @@ const CharPreview: React.FC = () => {
             intelligence: characterData.abilities[3],
             wisdom: characterData.abilities[4],
             charisma: characterData.abilities[5],
+            characterPic: characterData.profilePic,
             user_uid: user.uid
         };
+
+        const standardizedEquipmentNames = characterData.equipment.map(name => name.replace(/’/g, "'"));
 
 
         try {   
             const idToken = await user.getIdToken(true);
 
-            const equipmentIdsMapping: EquipmentMapping = await fetchEquipmentIds(characterData.equipment);
+            const equipmentIdsMapping: EquipmentMapping = await fetchEquipmentIds(standardizedEquipmentNames);
+
+            const lowerCaseEquipmentIdsMapping: EquipmentMapping = {};
+            for (const [key, value] of Object.entries(equipmentIdsMapping)) {
+                lowerCaseEquipmentIdsMapping[key.toLowerCase()] = value;
+            }
 
             console.log("Sending character data to backend:", JSON.stringify(requestBody));
 
@@ -75,43 +82,25 @@ const CharPreview: React.FC = () => {
                 console.log("Character saved successfully!");
     
                 const characterId = responseData.characterId;
-
                 if (!characterId) {
-                throw new Error("Character ID is missing from the server response.");
+                    throw new Error("Character ID is missing from the server response.");
                 }
-
-
-                if (characterData.profilePic) {
-                    const avatarUploadUrl = "http://localhost:5000/api/character-avatar-upload";
-                    
-                    const formData = new FormData();
-                    formData.append('file', characterData.profilePic);
-                    
-                    const avatarResponse = await fetch(avatarUploadUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': 'Bearer ' + idToken,
-                            'character_id': characterId  // Assuming backend expects character_id in headers
-                        },
-                        body: formData
-                    });
-            
-                    if (!avatarResponse.ok) {
-                        const avatarResponseData = await avatarResponse.json();
-                        throw new Error("Failed to upload character avatar: " + avatarResponseData.message);
-                    }
-                }
+                
 
                 console.log("Character Equipment:", characterData.equipment);
-                console.log("Equipment IDs Mapping:", equipmentIdsMapping);
+                console.log("Equipment IDs Mapping:", lowerCaseEquipmentIdsMapping);
                 console.log("Character ID:", characterId);
 
                 const equipmentData = characterData.equipment
-                    .map(equipmentName => ({
+                .map(equipmentName => {
+                    const equipmentId = lowerCaseEquipmentIdsMapping[equipmentName.toLowerCase()];
+                    console.log(`Mapping equipmentName: ${equipmentName}, equipmentId: ${equipmentId}`);
+                    return {
                         character_id: characterId,
-                        equipment_id: equipmentIdsMapping[equipmentName.toLowerCase()]
-                    }))
-                    .filter(item => item.equipment_id !== undefined);
+                        equipment_id: equipmentId
+                    };
+                })
+                .filter(item => item.equipment_id !== undefined);
 
 
                 console.log("Sending equipment data:", JSON.stringify(equipmentData));
@@ -134,6 +123,7 @@ const CharPreview: React.FC = () => {
 
                 navigate('/dashboard');
 
+                sessionStorage.removeItem('profilePic');
             
             } else {
                 console.error("Failed to save character:", responseData.message);

@@ -25,6 +25,7 @@ s3 = boto3.client(
 @new_char.route('/save-character', methods=['POST'])
 def save_character():
     data = request.json
+    print(data)
     user_uid = request.headers.get('uid')
     id_to_ability_name = get_ability_name_to_id()
 
@@ -97,7 +98,7 @@ def save_character():
         )
         db.session.add(new_modifier)
 
-    db.session_commit()
+    db.session.commit()
 
     return jsonify({"message": "Character saved successfully!", "characterId": character_id}), 201
 
@@ -114,6 +115,7 @@ def save_equipment():
 
     try:
         for item in data:
+            print(f"Processing item: {item}")
             # Create a new CharacterEquipments entry for each piece of equipment
             new_equipment = CharacterEquipments(
                 character_id=item['character_id'],
@@ -127,14 +129,23 @@ def save_equipment():
         return jsonify({"message": "Equipment saved successfully!"}), 201
 
     except Exception as e:
-        db.session.rollback()  # Rollback the transaction in case of errors
+        print(f"Error: {e}")
+        db.session.rollback()
         return jsonify({"message": f"An error occurred: {str(e)}"}), 500
-    
+
 
 
 @new_char.route('/character-avatar-upload', methods=['POST'])
 def character_avatar_upload():
-    character_id = request.headers.get('character_id')
+    character_id = request.form.get('character_id')
+    if character_id is None:
+        return jsonify({"message": "character_id header is missing"}), 400
+
+    print(f"Received character_id: {character_id}")
+    print(f"Received request.files: {request.files}")
+
+    if not character_id:
+        return jsonify({"error": "character_id header is missing"}), 400
 
     if 'file' not in request.files:
         return jsonify({"error": "No file part in the request"}), 400
@@ -144,27 +155,25 @@ def character_avatar_upload():
     if file.filename == '':
         return jsonify({"error": "No file selected"}), 400
     
-    if file:
-        filename = secure_filename(file.filename)
-        s3.upload_fileobj(
-            file,
-            S3_BUCKET,
-            filename,
-            ExtraArgs={
-                "ACL": "public-read",
-                "ContentType": file.content_type
-            }
-        )
+    filename = secure_filename(file.filename)
+    s3.upload_fileobj(
+        file,
+        S3_BUCKET,
+        filename,
+        ExtraArgs={
+            "ACL": "public-read",
+            "ContentType": file.content_type
+        }
+    )
 
-        character = CharacterSheet.query.filter_by(id=character_id).first()
-        if character:
-            try:
-                character.characterPic = f"{S3_LOCATION}{filename}"
-                print(f"Setting characterPic for character {character.id} to {S3_LOCATION}{filename}")
-                db.session.commit()
-                print(f"CharacterPic for character {character.id} set and committed.")
-            except Exception as e:
-                print(f"Error updating characterPic for character {character_id}: {e}")
-            
-        return jsonify({"url": f"{S3_LOCATION}{filename}"})
-
+    character = CharacterSheet.query.filter_by(id=character_id).first()
+    if character:
+        try:
+            character.characterPic = f"{S3_LOCATION}{filename}"
+            print(f"Setting characterPic for character {character.id} to {S3_LOCATION}{filename}")
+            db.session.commit()
+            print(f"CharacterPic for character {character.id} set and committed.")
+        except Exception as e:
+            print(f"Error updating characterPic for character {character_id}: {e}")
+        
+    return jsonify({"url": f"{S3_LOCATION}{filename}"})

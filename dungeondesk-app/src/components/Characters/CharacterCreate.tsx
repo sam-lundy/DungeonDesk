@@ -1,6 +1,5 @@
-import { useState, ChangeEvent } from 'react';
 import { 
-    Container, TextField, Button, Avatar, Typography, Box
+    Container, TextField, Button, Typography, Box
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
@@ -16,24 +15,8 @@ const validationSchema = Yup.object().shape({
 const CharacterCreate: React.FC = () => {
     const navigate = useNavigate();
     const { characterData, setCharacterData } = useCharacterCreation();
-    const [profilePic, setProfilePic] = useState('');
     console.log(characterData)
 
-
-    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files![0];
-        
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = function () {
-            setCharacterData(prev => ({ ...prev, profilePic: reader.result as string }));
-            setProfilePic(reader.result as string);
-
-        };
-        reader.onerror = function (error) {
-            console.log('Error: ', error);
-        };
-    };
 
     const formik = useFormik({
         validationSchema: validationSchema,
@@ -51,21 +34,6 @@ const CharacterCreate: React.FC = () => {
     return (
         <Container>
             <Box display="flex" alignItems="center" height="100vh">
-                {/* Avatar Container */}
-                <Box flexGrow={1} display="flex" flexDirection="column" alignItems="flex-start" pl={4}>
-                    {profilePic ? (
-                        <img src={profilePic} alt="Character" width="120" height="120" />
-                    ) : (
-                        <Avatar sx={{ width: '120px', height: '120px' }} />
-                    )}
-                    <input 
-                        type="file" 
-                        onChange={handleFileChange} 
-                        accept="image/*" 
-                        style={{ marginTop: '1rem', marginBottom: '-1.5rem' }}
-                    />
-                </Box>
-
                 {/* Form Content */}
                 <Box flexGrow={4} display="flex" flexDirection="column" alignItems="center">
                 <Typography 

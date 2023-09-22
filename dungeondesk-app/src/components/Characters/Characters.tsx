@@ -2,8 +2,8 @@ import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../firebase/firebase.auth.tsx";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify"
-import { Container, Typography, Button, Avatar, Box,
-Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
+import { Container, Typography, Button, Avatar, Box, Dialog, DialogActions, 
+  DialogContent, DialogContentText, DialogTitle, CircularProgress } from "@mui/material";
 
 
 interface Character {
@@ -17,6 +17,8 @@ const Characters: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [characterToDelete, setCharacterToDelete] = useState<Character | null>(null);
   const context = useContext(AuthContext);
+  const [isLoading, setIsLoading] = useState(true);
+
 
   if (!context) {
       throw new Error("AuthContext must be used within an AuthProvider");
@@ -75,6 +77,7 @@ const Characters: React.FC = () => {
     let isMounted = true;
 
     async function fetchCharacters() {
+      setIsLoading(true);
       if (currentUser) {
           try {
               const endpoint = "http://localhost:5000/api/get-characters";
@@ -108,6 +111,7 @@ const Characters: React.FC = () => {
                       console.error("Unexpected response structure:", data);
                       setCharacters([]);
                   }
+                  setIsLoading(false);
               }
           } catch (error: any) {
               if (error.name !== 'AbortError') {
@@ -117,9 +121,10 @@ const Characters: React.FC = () => {
       }
   }  
   
-    
     fetchCharacters();
-
+    return () => {
+      isMounted = false;
+  };
 }, [currentUser]);
 
   const canCreateCharacter = characters.length < 4;
@@ -150,7 +155,9 @@ const Characters: React.FC = () => {
 
       <Typography variant="body1">Slots used: {characters.length}/4</Typography>
 
-
+      {isLoading ? (
+      <CircularProgress />
+    ) : (
       <Box
         sx={{
           display: "flex",
@@ -200,6 +207,7 @@ const Characters: React.FC = () => {
           </Box>
         ))}
       </Box>
+    )}
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>

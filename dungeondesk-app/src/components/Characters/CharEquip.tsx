@@ -42,6 +42,7 @@ const CharEquip: React.FC = () => {
     const { data, loading, error } = useQuery(GET_STARTING_EQUIPMENT_OPTIONS, {
       variables: { name: className } // Make sure className contains a valid string
     });
+    
 
     const [equipmentOptions, setEquipmentOptions] = useState<EquipmentOption[]>([]);
 
@@ -56,7 +57,7 @@ const CharEquip: React.FC = () => {
                 equipment: values.selectedEquipment
             }));
             navigate('/character-create/preview');
-        }        
+        }
     });
 
     useEffect(() => {
@@ -68,6 +69,7 @@ const CharEquip: React.FC = () => {
 
     useEffect(() => {
         const selectedItems = Object.values(selectedForCategory);
+        console.log("Selected for Category:", selectedForCategory);
         formik.setFieldValue('selectedEquipment', selectedItems);
     }, [selectedForCategory]);
 
@@ -101,11 +103,16 @@ const CharEquip: React.FC = () => {
         // Remove any leading "(a)", "(b)", etc.
         choices = choices.map(s => s.replace(/^\([a-z]\)\s*/, ''));
         
+        // Remove leading "a " or "an " from each choice
+        choices = choices.map(s => s.replace(/^(a|an)\s+/i, ''));
+        
         // Filter out any empty or very short fragments
         choices = choices.filter(s => s.length > 2);
         
         return choices;
     }
+    
+    console.log("Formik Values:", formik.values);
 
 
     return (

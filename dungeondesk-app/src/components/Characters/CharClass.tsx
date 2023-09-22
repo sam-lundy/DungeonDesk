@@ -47,7 +47,7 @@ const CharClass: React.FC = () => {
         setShowModal(true);
     };
 
-    // GraphQL query to fetch class details.
+
     const GET_CLASS_DETAILS = gql`
     query Class($index: String) {
         class(index: $index) {
@@ -101,8 +101,8 @@ const CharClass: React.FC = () => {
                                 backgroundColor: '#0C0A26',
                                 color: 'white',
                                 '&:hover': {
-                                    backgroundColor: '#0C0A26', // Keeps the same color on hover
-                                    opacity: 0.8 // Optionally, you can add a slight opacity change on hover
+                                    backgroundColor: '#0C0A26',
+                                    opacity: 0.8
                                 }
                             }}
                         >
@@ -129,9 +129,9 @@ const CharClass: React.FC = () => {
                             width: '80vw', 
                             maxWidth: '400px', 
                             borderRadius: '8px',
-                            overflowY: 'auto',  // Allow vertical scrolling
-                            maxHeight: '70vh',  // Set a maximum height
-                            textAlign: 'center' // <-- This centers the text
+                            overflowY: 'auto',
+                            maxHeight: '70vh',
+                            textAlign: 'center'
                         }}
                     >
                     <Typography variant="h6" sx={{ marginBottom: 2 }}>{classDetails?.name}</Typography>
@@ -147,7 +147,15 @@ const CharClass: React.FC = () => {
                     ))}
 
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
-                            <Button variant="outlined" onClick={handleCloseModal}>Cancel</Button>
+                            <Button 
+                                variant="outlined" 
+                                onClick={handleCloseModal}
+                                sx={{
+                                    backgroundColor: 'red',
+                                }}
+                                >
+                                Cancel
+                            </Button>
                             <Button 
                                 variant="contained" 
                                 color="primary" 

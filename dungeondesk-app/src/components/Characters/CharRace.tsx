@@ -2,19 +2,21 @@ import { useState, useEffect } from "react";
 import { Container, Typography, Modal, Box, Button } from "@mui/material";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
-import { SelectChangeEvent } from "@mui/material";
 import { gql, useLazyQuery } from "@apollo/client";
 import { useCharacterCreation } from "./CharCreationContext";
+
 
 interface Trait {
   name: string;
   desc: string;
 }
 
+
 type Subrace = {
   name: string;
   racial_traits: Trait[];
 };
+
 
 interface SubraceToMainRaceMapping {
   "Hill Dwarf": string;
@@ -22,6 +24,7 @@ interface SubraceToMainRaceMapping {
   "Lightfoot": string;
   "Rock Gnome": string;
 }
+
 
 const CharRace: React.FC = () => {
   const { characterData, setCharacterData } = useCharacterCreation();
@@ -79,7 +82,6 @@ const formik = useFormik({
 
 
   useEffect(() => {
-    console.log("Fetched data:", data);
     if (data && data.races && data.races.length > 0) {
       const raceData = data.races[0]; // Get the first (and only) race from the data
 
@@ -114,7 +116,6 @@ const formik = useFormik({
 
 
   if (loading) return <p>Loading...</p>;
-
   if (error) return <p>Error: {error.message}</p>;
 
 
@@ -139,21 +140,6 @@ const formik = useFormik({
   };
 
 
-  const handleRaceChange = (event: SelectChangeEvent, raceName: string) => {
-    const selectedValue = event.target.value as string;
-    
-    // Update Formik's values instead of local state
-    formik.setFieldValue("selectedRace", { [raceName]: selectedValue });
-
-    setRaceDetails(null);
-    getRaceDetails({ variables: { raceName: selectedValue },
-    fetchPolicy: 'network-only'
-    
-    }); // Trigger the GraphQL query
-    setShowModal(true);
-};
-
-
   const handleCancel = () => {
     setRaceDetails(null);
     setShowModal(false);
@@ -167,23 +153,17 @@ const formik = useFormik({
       queryRaceName = subraceToMainRaceMapping[raceName as keyof SubraceToMainRaceMapping];
     }
   
-    // If the clicked race is the same as the previously selected one, we just open the modal
-    if (selectedRace && selectedRace[raceName] === raceName) {
-      setShowModal(true);
-      return;
-    }
   
     // Always refetch details and show the modal
     setSelectedRace({ [raceName]: raceName });
     formik.setFieldValue("selectedRace", { [raceName]: raceName });
     setRaceDetails(null);
     getRaceDetails({ variables: { raceName: queryRaceName } });
-    console.log("Selected Race for Details:", raceName);
     setShowModal(true);
   };
   
   const handleModalClose = () => {
-    setSelectedRace({}); // Set to an empty object
+    setSelectedRace({});
     setRaceDetails(null);
     setShowModal(false);
   };
@@ -215,8 +195,8 @@ const formik = useFormik({
                 backgroundColor: '#0C0A26',
                 color: 'white',
                 '&:hover': {
-                    backgroundColor: '#0C0A26', // Keeps the same color on hover
-                    opacity: 0.8 // Optionally, you can add a slight opacity change on hover
+                    backgroundColor: '#0C0A26',
+                    opacity: 0.8
                 }
             }}
             >
@@ -249,7 +229,7 @@ const formik = useFormik({
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: "1rem"  // Added a gap of 1rem between child elements
+              gap: "1rem"
             }}
           >
             <Typography variant="h6" textAlign="center">{raceDetails?.name}</Typography>
@@ -269,8 +249,14 @@ const formik = useFormik({
                 width: '100%', 
               }}
             >
-              <Button variant="outlined" onClick={handleCancel}>
-                Cancel
+              <Button 
+                  variant="outlined" 
+                  onClick={handleCancel}
+                  sx={{
+                      backgroundColor: 'red',
+                  }}
+                  >
+                  Cancel
               </Button>
               <Button 
                 variant="contained" 
@@ -281,8 +267,8 @@ const formik = useFormik({
                   backgroundColor: '#0C0A26',
                   color: 'white',
                   '&:hover': {
-                      backgroundColor: '#0C0A26', // Keeps the same color on hover
-                      opacity: 0.8 // Optionally, you can add a slight opacity change on hover
+                      backgroundColor: '#0C0A26',
+                      opacity: 0.8
                   }
               }}
             >
