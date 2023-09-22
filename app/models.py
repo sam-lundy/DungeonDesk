@@ -18,6 +18,13 @@ class User(db.Model):
     character_sheets = db.relationship('CharacterSheet', backref='user', cascade="all, delete-orphan", lazy=True)
 
 
+character_ability_values = db.Table('character_ability_values',
+    db.Column('character_id', db.Integer, db.ForeignKey('character_sheet.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('ability_score_id', db.Integer, db.ForeignKey('ability_score.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('value', db.Integer, nullable=False)  # This stores the ability score value.
+)
+
+
 class CharacterSheet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
@@ -32,6 +39,8 @@ class CharacterSheet(db.Model):
     armor_class = db.Column(db.Integer, nullable=False)
     current_hp = db.Column(db.Integer, nullable=False)
     max_hp = db.Column(db.Integer, nullable=False)
+    ability_values = db.relationship('AbilityScore', secondary=character_ability_values, backref=db.backref('characters', lazy='dynamic'))
+    ability_modifiers = db.relationship('AbilityModifiers', back_populates='character', lazy='dynamic', cascade="all, delete-orphan")  
     character_equipments = db.relationship('CharacterEquipments', cascade="all, delete-orphan", back_populates='character')
     user_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False, index=True)
     __table_args__ = (
@@ -39,11 +48,6 @@ class CharacterSheet(db.Model):
     )
 
 
-character_ability_values = db.Table('character_ability_values',
-    db.Column('character_id', db.Integer, db.ForeignKey('character_sheet.id', ondelete='CASCADE'), primary_key=True),
-    db.Column('ability_score_id', db.Integer, db.ForeignKey('ability_score.id', ondelete='CASCADE'), primary_key=True),
-    db.Column('value', db.Integer, nullable=False)  # This stores the ability score value.
-)
 
 
 class CharacterEquipments(db.Model):
@@ -68,8 +72,7 @@ class AbilityModifiers(db.Model):
     character_id = db.Column(db.Integer, db.ForeignKey('character_sheet.id'), nullable=False)
     name = db.Column(db.String(80), nullable=False)
     value = db.Column(db.Integer, nullable=False)
-    character = db.relationship('CharacterSheet', backref=db.backref('ability_modifiers', cascade="all, delete-orphan"))
-
+    character = db.relationship('CharacterSheet', back_populates='ability_modifiers')
 
 
 class Race(db.Model):
