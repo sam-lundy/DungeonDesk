@@ -40,7 +40,8 @@ class CharacterSheet(db.Model):
     current_hp = db.Column(db.Integer, nullable=False)
     max_hp = db.Column(db.Integer, nullable=False)
     ability_values = db.relationship('AbilityScore', secondary=character_ability_values, backref=db.backref('characters', lazy='dynamic'))
-    ability_modifiers = db.relationship('AbilityModifiers', back_populates='character', lazy='dynamic', cascade="all, delete-orphan")  
+    ability_modifiers = db.relationship('AbilityModifiers', back_populates='character', lazy='dynamic', cascade="all, delete-orphan")
+    proficiencies = db.relationship('CharacterProficiencies', back_populates='character')
     character_equipments = db.relationship('CharacterEquipments', cascade="all, delete-orphan", back_populates='character')
     user_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False, index=True)
     __table_args__ = (

@@ -1,8 +1,9 @@
 from . import character
 from flask import request, jsonify
-from ...models import db, Equipment, CharacterSheet, AbilityScore, character_ability_values, Classes
+from ...models import db, Equipment, CharacterSheet, AbilityScore, character_ability_values, Classes, AbilityModifiers, CharacterProficiencies
 from sqlalchemy import func
 from sqlalchemy.dialects import postgresql
+import json
 
 
 @character.route('/get-characters', methods=['GET'])
@@ -38,30 +39,29 @@ def get_character(character_id):
 
     if not character:
         return jsonify({"error": "Character not found."}), 404
-    
-    #Fetch corresponding class data
+
     character_class = Classes.query.filter_by(name=character.class_name).first()
 
     if not character_class:
-    # Handle case where class data is not found
         return jsonify({"error": "Class data not found for the character"}), 404
 
-    # Extract the saving throws data
     saving_throws = character_class.saving_throws
+    default_proficiencies = character_class.default_proficiencies
     
     # Fetch ability values through a join query
     ability_values_query = db.session.query(AbilityScore.name, character_ability_values.c.value).\
         join(character_ability_values, AbilityScore.id == character_ability_values.c.ability_score_id).\
         filter(character_ability_values.c.character_id == character_id)
 
-    # Store results in a list
     query_results = list(ability_values_query)
-
-    # Now create the dictionary using the stored results
     ability_values = {row.name: row.value for row in query_results}
 
+    ability_modifiers_query = AbilityModifiers.query.filter_by(character_id=character_id).all()
+    ability_modifiers = {mod.name.lower(): mod.value for mod in ability_modifiers_query}
 
-    # Convert the character to a dictionary to return as JSON
+    character_proficiencies = CharacterProficiencies.query.filter_by(character_id=character_id).all()
+    proficiency_ids = [proficiency.proficiency_id for proficiency in character_proficiencies]
+
     character_data = {
         "id": character.id,
         "name": character.name,
@@ -83,9 +83,14 @@ def get_character(character_id):
             "wisdom": ability_values.get("WIS"),
             "charisma": ability_values.get("CHA")
         },
-        "imageUrl": character.characterPic or "default_image_url" 
+        "defaultProficiencies": default_proficiencies,
+        "imageUrl": character.characterPic or "default_image_url",
+        "saving_throws": saving_throws,
+        "abilityModifiers": ability_modifiers,
+        "proficiency_ids": proficiency_ids
     }
-    character_data["saving_throws"] = saving_throws
+
+    character_data["defaultProficiencies"] = json.loads(character_data["defaultProficiencies"])
     print(character_data)
     return jsonify(character_data)
 
