@@ -2,20 +2,20 @@ import { createContext, useState, useContext, ReactNode } from "react";
 
 interface CharacterData {
     name: string;
-    profilePic: string;
     race: string;
     class: string;
     abilities: number[];
-    equipment: string[]
+    equipment: string[];
+    proficiencies: string[];
 }
 
 const defaultCharacterData: CharacterData = {
     name: '',
-    profilePic: '',
     race: '',
     class: '',
     abilities: [],
-    equipment: []
+    equipment: [],
+    proficiencies: []
   };
 
 interface CharacterCreationProviderProps {

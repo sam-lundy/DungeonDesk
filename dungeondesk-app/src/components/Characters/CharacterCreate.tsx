@@ -21,8 +21,7 @@ const CharacterCreate: React.FC = () => {
     const formik = useFormik({
         validationSchema: validationSchema,
         initialValues: {
-            name: characterData.name,
-            profilePic: characterData.profilePic
+            name: characterData.name
         },
         onSubmit: values => {
             setCharacterData(prev => ({ ...prev, ...values }));

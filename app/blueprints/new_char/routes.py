@@ -1,6 +1,6 @@
 from . import new_char
 from flask import request, jsonify
-from ...models import db, CharacterSheet, CharacterEquipments, AbilityModifiers, character_ability_values
+from ...models import db, CharacterSheet, CharacterEquipments, AbilityModifiers, character_ability_values, Proficiency, CharacterProficiencies
 from firebase_admin import auth
 from werkzeug.utils import secure_filename
 from app.utils.character.calculate_hp import calculate_hp
@@ -38,6 +38,8 @@ def save_character():
     decoded_token = auth.verify_id_token(token)
     uid = decoded_token['uid']
 
+    selected_proficiencies = data.get('selectedProficiencies', [])
+
     # Proficiency bonus calculation
     prof_bonus = 1 + (data['level'] // 4)
 
@@ -56,49 +58,60 @@ def save_character():
             'wisdom': data['wisdom'],
             'charisma': data['charisma']
         })
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
 
 
-    # Create the new character entry
-    new_character = CharacterSheet(
-        name=data['name'],
-        race_name=data['race_name'],
-        class_name=data['class_name'],
-        level=data['level'],
-        prof_bonus=prof_bonus,
-        armor_class=armor_class,
-        current_hp=data.get('current_hp', max_hp),
-        max_hp=max_hp,
-        characterPic=data.get('profile_pic'),
-        user_uid=data['user_uid']  
-    )
-
-    db.session.add(new_character)
-    db.session.commit()
-    character_id = new_character.id
-
-    # Store the final abilities in the character_ability_values table
-    for ability_name, value in final_abilities.items():
-        ability_score_id = id_to_ability_name[ability_name]
-        new_ability_value = character_ability_values.insert().values(
-            character_id=character_id,
-            ability_score_id=ability_score_id,
-            value=value
+        # Create the new character entry
+        new_character = CharacterSheet(
+            name=data['name'],
+            race_name=data['race_name'],
+            class_name=data['class_name'],
+            level=data['level'],
+            prof_bonus=prof_bonus,
+            armor_class=armor_class,
+            current_hp=data.get('current_hp', max_hp),
+            max_hp=max_hp,
+            characterPic=data.get('profile_pic'),
+            user_uid=data['user_uid']  
         )
-        db.session.execute(new_ability_value)
+
+        db.session.add(new_character)
+        db.session.commit()
+        character_id = new_character.id
+
+        # Store the final abilities in the character_ability_values table
+        for ability_name, value in final_abilities.items():
+            ability_score_id = id_to_ability_name[ability_name]
+            new_ability_value = character_ability_values.insert().values(
+                character_id=character_id,
+                ability_score_id=ability_score_id,
+                value=value
+            )
+            db.session.execute(new_ability_value)
 
 
-    # Add the ability modifiers
-    for ability, modifier in ability_modifiers.items():
-        new_modifier = AbilityModifiers(
-            character_id=character_id,
-            name=ability,
-            value=modifier
-        )
-        db.session.add(new_modifier)
+        # Add the ability modifiers
+        for ability, modifier in ability_modifiers.items():
+            new_modifier = AbilityModifiers(
+                character_id=character_id,
+                name=ability,
+                value=modifier
+            )
+            db.session.add(new_modifier)
 
-    db.session.commit()
+
+        selected_proficiencies = [p.split(": ")[1] if "Skill: " in p else p for p in data.get('selectedProficiencies', [])]
+        for proficiency_name in selected_proficiencies:
+            proficiency = Proficiency.query.filter_by(name=proficiency_name).first()
+            if proficiency:
+                new_character_proficiency = CharacterProficiencies(character_id=character_id, proficiency_id=proficiency.id)
+                db.session.add(new_character_proficiency)
+
+        db.session.commit()
+        
+    except Exception as e:
+        # In case of any error, roll back the changes to maintain data integrity.
+        db.session.rollback()
+        return jsonify({"error": "An error occurred: " + str(e)}), 400
 
     return jsonify({"message": "Character saved successfully!", "characterId": character_id}), 201
 

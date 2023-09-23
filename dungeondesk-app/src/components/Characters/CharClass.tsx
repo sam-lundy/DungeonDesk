@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
-    Container, Typography, Box, Button, Modal
+    Container, Typography, Box, Button, 
+    Modal, Checkbox
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { gql, useLazyQuery } from '@apollo/client';
@@ -8,11 +9,29 @@ import { useFormik } from 'formik';
 import { useCharacterCreation } from './CharCreationContext';
 
 
+interface ProficiencyOptionItem {
+    name: string;
+}
+
+interface ProficiencyOption {
+    item: ProficiencyOptionItem;
+}
+
+interface ProficiencyChoice {
+    desc: string;
+    choose: number;
+    from: {
+        options: ProficiencyOption[];
+    };
+}
+
+
 interface ClassDetails {
     name?: string;
     hit_die?: number;
     saving_throws?: { name: string }[] | null;
     proficiencies?: { name: string }[] | null;
+    proficiency_choices: ProficiencyChoice[] | null;
 }
 
 
@@ -25,14 +44,18 @@ const CharClass: React.FC = () => {
     const [classDetails, setClassDetails] = useState<ClassDetails | null>(null);
     const [showModal, setShowModal] = useState(false);
     const { characterData, setCharacterData } = useCharacterCreation();
+    const [selectedProficiencies, setSelectedProficiencies] = useState<string[]>([]);
     const navigate = useNavigate();
-    console.log(characterData)
 
     const formik = useFormik({
         initialValues: {
             selectedClass: ''
         },
         onSubmit: () => {
+            setCharacterData(prevData => ({
+                ...prevData,
+                proficiencies: selectedProficiencies
+            }));
             navigate('/character-create/abilities');
         }
     });
@@ -45,21 +68,46 @@ const CharClass: React.FC = () => {
         }));
         getClassDetails({ variables: { index: charClass.toLowerCase() } });
         setShowModal(true);
-    };
+    };    
 
+      
+    const handleProficiencyChange = (proficiency: string) => {
+        if (selectedProficiencies.includes(proficiency)) {
+            // If proficiency is already selected, remove it
+            setSelectedProficiencies(prev => prev.filter(p => p !== proficiency));
+        } else {
+            // Add the proficiency if not already selected
+            setSelectedProficiencies(prev => [...prev, proficiency]);
+        }
+    };
+    
+    
 
     const GET_CLASS_DETAILS = gql`
     query Class($index: String) {
-        class(index: $index) {
-            name
-            hit_die
-            saving_throws {
+    class(index: $index) {
+        name
+        hit_die
+        saving_throws {
+        name
+        }
+        proficiencies {
+        name
+        }
+        proficiency_choices {
+        desc
+        choose
+        from {
+            options {
+            ... on ProficiencyReferenceOption {
+                item {
                 name
+                }
             }
-            proficiencies {
-                name
             }
         }
+        }
+    }
     }
 `;
 
@@ -81,6 +129,7 @@ const CharClass: React.FC = () => {
 
     const handleCloseModal = () => {
         formik.setFieldValue('selectedClass', '');
+        setSelectedProficiencies([]);
         setShowModal(false);
     };
 
@@ -126,11 +175,11 @@ const CharClass: React.FC = () => {
                             bgcolor: 'background.paper', 
                             boxShadow: 24, 
                             p: 4, 
-                            width: '80vw', 
+                            width: '80vw',
                             maxWidth: '400px', 
                             borderRadius: '8px',
                             overflowY: 'auto',
-                            maxHeight: '70vh',
+                            maxHeight: '75vh',
                             textAlign: 'center'
                         }}
                     >
@@ -146,13 +195,48 @@ const CharClass: React.FC = () => {
                         <Typography key={proficiency.name} variant="body2" sx={{ marginBottom: 1 }}>{proficiency.name}</Typography>
                     ))}
 
+                    <Typography variant="subtitle1" sx={{ marginTop: 2, marginBottom: 1 }}>
+                        Choose Proficiencies:
+                    </Typography>
+                    {classDetails?.proficiency_choices?.map((choice, index) => (
+                        <div key={index}>
+                            <Typography variant="body2" sx={{ marginBottom: 1 }}>
+                                {choice.desc}
+                            </Typography>
+                            {choice.from.options.map((option: any) => {
+                                if (!option.item) return null;
+
+                                const proficiencyName = option.item.name;
+                                const isChecked = selectedProficiencies.includes(proficiencyName);
+                                const isDisabled = !isChecked && selectedProficiencies.length >= choice.choose;
+
+                                return (
+                                    <div key={proficiencyName}>
+                                        <Checkbox
+                                            checked={isChecked}
+                                            onChange={() => handleProficiencyChange(proficiencyName, choice.choose)}
+                                            disabled={isDisabled}
+                                        />
+                                        <label>{proficiencyName}</label>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ))}
+
+
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
                             <Button 
                                 variant="outlined" 
                                 onClick={handleCloseModal}
                                 sx={{
-                                    backgroundColor: 'red',
-                                }}
+                                    backgroundColor: '#0C0A26',
+                                    color: 'white',
+                                    '&:hover': {
+                                        backgroundColor: 'red',
+                                        opacity: 0.8
+                                    }
+                                  }}
                                 >
                                 Cancel
                             </Button>

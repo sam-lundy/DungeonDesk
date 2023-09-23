@@ -1,6 +1,6 @@
 from . import character
 from flask import request, jsonify
-from ...models import db, Equipment, CharacterSheet, AbilityScore, character_ability_values
+from ...models import db, Equipment, CharacterSheet, AbilityScore, character_ability_values, Classes
 from sqlalchemy import func
 from sqlalchemy.dialects import postgresql
 
@@ -34,11 +34,20 @@ def get_characters():
 
 @character.route('/get-character/<int:character_id>', methods=['GET'])
 def get_character(character_id):
-    print(f"Accessing get_character route with ID: {character_id}")
     character = CharacterSheet.query.get(character_id)
 
     if not character:
         return jsonify({"error": "Character not found."}), 404
+    
+    #Fetch corresponding class data
+    character_class = Classes.query.filter_by(name=character.class_name).first()
+
+    if not character_class:
+    # Handle case where class data is not found
+        return jsonify({"error": "Class data not found for the character"}), 404
+
+    # Extract the saving throws data
+    saving_throws = character_class.saving_throws
     
     # Fetch ability values through a join query
     ability_values_query = db.session.query(AbilityScore.name, character_ability_values.c.value).\
@@ -76,6 +85,7 @@ def get_character(character_id):
         },
         "imageUrl": character.characterPic or "default_image_url" 
     }
+    character_data["saving_throws"] = saving_throws
     print(character_data)
     return jsonify(character_data)
 

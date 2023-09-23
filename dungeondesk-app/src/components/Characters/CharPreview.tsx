@@ -30,6 +30,8 @@ const CharPreview: React.FC = () => {
     const handleSave = async () => {
         const auth = getAuth();
         const user = auth.currentUser;
+        const selectedProficiencies = characterData.proficiencies;
+
 
         if (!user) throw new Error("User is not authenticated.");
 
@@ -40,13 +42,13 @@ const CharPreview: React.FC = () => {
             race_name: characterData.race,
             class_name: characterData.class,
             level: 1,
+            selectedProficiencies: selectedProficiencies,
             strength: characterData.abilities[0],
             dexterity: characterData.abilities[1],
             constitution: characterData.abilities[2],
             intelligence: characterData.abilities[3],
             wisdom: characterData.abilities[4],
             charisma: characterData.abilities[5],
-            characterPic: characterData.profilePic,
             user_uid: user.uid
         };
 
@@ -123,7 +125,6 @@ const CharPreview: React.FC = () => {
 
                 navigate('/dashboard');
 
-                sessionStorage.removeItem('profilePic');
             
             } else {
                 console.error("Failed to save character:", responseData.message);
@@ -138,22 +139,55 @@ const CharPreview: React.FC = () => {
         }
     };
     
+    const abilityNames = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
 
     return (
-        <Container>
-            <Typography variant="h4">Review Your Character</Typography>
-            <List>
-                <ListItem>Name: {characterData.name}</ListItem>
-                <ListItem>Race: {characterData.race}</ListItem>
-                <ListItem>Class: {characterData.class}</ListItem>
-                <ListItem>Abilities: {characterData.abilities.join(", ")}</ListItem>
-                <ListItem>Equipment: {characterData.equipment.join(", ")}</ListItem>
-            </List>
-            <Button variant="contained" color="primary" onClick={handleSave}>
-                Confirm & Save
-            </Button>
-        </Container>
+
+            <div className="bg-white rounded-lg shadow-md p-6 max-w-xl mx-auto">
+                <h1 className="text-2xl font-semibold mb-4">Review Your Character</h1>
+                <div className="mb-4">
+                    <h2 className="text-xl font-medium mb-2">Details</h2>
+                    <ul className="text-center pl-5">
+                        <li>Name: {characterData.name}</li>
+                        <li>Race: {characterData.race}</li>
+                        <li>Class: {characterData.class}</li>
+                    </ul>
+                </div>
+                <div className="mb-4">
+                    <h2 className="text-xl mb-4 font-medium">Abilities:</h2>
+                    <ul className="text-center pl-5">
+                        {characterData.abilities.map((value, index) => (
+                            <li key={index}>
+                                {abilityNames[index]}: {value}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+                <div className="mb-4">
+                    <h2 className="text-xl font-medium mb-4">Equipment:</h2>
+                    <ul className="pl-5">
+                        {characterData.equipment.map((item, index) => (
+                            <li key={index}>{item}</li>
+                        ))}
+                    </ul>
+                </div>
+                <div className="mb-4">
+                    <h2 className="text-xl font-medium mb-4">Proficiencies:</h2>
+                    <ul className="pl-5">
+                        {characterData.proficiencies.map((proficiency, index) => (
+                            <li key={index}>{proficiency}</li>
+                        ))}
+                    </ul>
+                </div>
+                <button 
+                    onClick={handleSave}
+                    className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+                >
+                    Confirm & Save
+                </button>
+            </div>
     );
+    
 }
 
 export default CharPreview;

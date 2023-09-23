@@ -253,7 +253,12 @@ const formik = useFormik({
                   variant="outlined" 
                   onClick={handleCancel}
                   sx={{
-                      backgroundColor: 'red',
+                    backgroundColor: '#0C0A26',
+                    color: 'white',
+                    '&:hover': {
+                        backgroundColor: 'red',
+                        opacity: 0.8
+                    }
                   }}
                   >
                   Cancel

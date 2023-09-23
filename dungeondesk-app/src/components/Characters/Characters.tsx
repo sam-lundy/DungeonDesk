@@ -147,6 +147,14 @@ const Characters: React.FC = () => {
           component={Link}
           to="/character-create"
           disabled={!canCreateCharacter}
+          sx={{
+            backgroundColor: '#0C0A26',
+            color: 'white',
+            '&:hover': {
+                backgroundColor: '#0C0A26',
+                opacity: 0.8
+            }
+          }}
         >
           Create
         </Button>
@@ -191,14 +199,33 @@ const Characters: React.FC = () => {
           </Typography>
           <Box sx={{ marginTop: "auto" }}>
             <Link to={`/character-sheet/${character.id}`}>
-              <Button variant="outlined" color="primary">
+              <Button 
+              variant="outlined" 
+              color="primary"
+              sx={{
+                backgroundColor: '#0C0A26',
+                color: 'white',
+                '&:hover': {
+                    backgroundColor: '#0C0A26',
+                    opacity: 0.8
+                }
+              }}
+              >
                 View
               </Button>
             </Link>
             <Button 
               variant="outlined"
               color="secondary"
-              sx={{ marginLeft: "0.5rem" }}
+              sx={{ 
+              marginLeft: "0.5rem",
+              backgroundColor: '#0C0A26',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: 'red',
+                opacity: 0.9
+            }
+            }}
               onClick={() => handleOpen(character)}
             >
               Delete
@@ -216,10 +243,30 @@ const Characters: React.FC = () => {
             </DialogContentText>
         </DialogContent>
         <DialogActions>
-            <Button onClick={handleClose} color="primary">
-                Cancel
+            <Button onClick={handleClose} 
+              color="primary"
+              sx={{
+                backgroundColor: '#0C0A26',
+                color: 'white',
+                '&:hover': {
+                    backgroundColor: '#0C0A26',
+                    opacity: 0.9
+                }
+              }}
+              >
+              Cancel
             </Button>
-            <Button onClick={handleDelete} color="primary" autoFocus>
+            <Button onClick={handleDelete} 
+            color="primary" autoFocus
+            sx={{
+              backgroundColor: '#0C0A26',
+              color: 'white',
+              '&:hover': {
+                  backgroundColor: 'red',
+                  opacity: 0.9
+              }
+            }}
+            >
                 Delete
             </Button>
         </DialogActions>

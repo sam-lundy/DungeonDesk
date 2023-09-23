@@ -86,7 +86,6 @@ class Race(db.Model):
 class Language(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True, nullable=False)
-    description = db.Column(db.Text)
 
 
 class Trait(db.Model):
@@ -126,8 +125,6 @@ class Equipment(db.Model):
 class Proficiency(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
-    description = db.Column(db.Text, nullable=True)
-    proficiency_type = db.Column(db.Enum('SKILL', 'TOOL', 'LANGUAGE', name='proficiency_types'), nullable=False)  # Add more types as needed.
 
 
 class CharacterProficiencies(db.Model):
@@ -135,18 +132,4 @@ class CharacterProficiencies(db.Model):
     character_id = db.Column(db.Integer, db.ForeignKey('character_sheet.id'), nullable=False)
     proficiency_id = db.Column(db.Integer, db.ForeignKey('proficiency.id'), nullable=False)
     character = db.relationship('CharacterSheet', backref=db.backref('character_proficiencies', cascade="all, delete-orphan"))
-
-
-class Skill(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), nullable=False)
-
-
-class CharacterSkill(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    character_id = db.Column(db.Integer, db.ForeignKey('character_sheet.id'), nullable=False)
-    skill_id = db.Column(db.Integer, db.ForeignKey('skill.id'), nullable=False)
-    modifier = db.Column(db.Integer, nullable=False)  # Modifier for this character's skill.
-    db.UniqueConstraint('character_id', 'skill_id', name='uix_character_skill_ids')
-    character = db.relationship('CharacterSheet', backref=db.backref('character_skills', cascade="all, delete-orphan"))
 

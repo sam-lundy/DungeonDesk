@@ -28,6 +28,7 @@ interface CharacterData {
   current_hp?: number;
   max_hp?: number;
   temp_hp?: number;
+  saving_throws: string[];
 }
 
 
@@ -159,20 +160,36 @@ const CharacterSheet: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex space-x-12 p-4 mb-6">
+        <div className="flex space-x-10 p-6 mb-6 ml-10">
 
           {/* Saving Throws */}
           <div className="flex flex-col space-y-2 bg-indigo-100 p-4 rounded">
             <span className="text-sm font-semibold mb-2">Saving Throws</span>
             <div className="grid grid-cols-2 gap-4">
-              {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map((ability, index) => (
-              <div key={ability} className="flex flex-col items-center mr-4">
-                <span className='text-sm mb-1'>{ability}</span>
-                <input type="number" placeholder="+0" className="text-center w-14 p-1 border rounded" />
+            {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map((ability, index) => {
+              const abilityKeys: (keyof AbilityScores)[] = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
+              const abilityScore = character?.abilityScores?.[abilityKeys[index]] || 10;
+
+              const modifier = Math.floor((abilityScore - 10) / 2);
+
+              // Checking proficiency using the includes method
+              const isProficient = character?.saving_throws.includes(ability);
+
+              const totalModifier = modifier + (isProficient ? character?.prof_bonus || 0 : 0);
+
+              const sign = totalModifier >= 0 ? '+' : '';
+
+              return (
+                  <div key={ability} className="flex flex-col items-center mr-4">
+                      <span className='text-sm mb-1'>{ability}</span>
+                      <span className={`text-center text-sm w-14 p-1 rounded ${isProficient ? 'bg-green-200 border-2 border-green-800' : ''}`}>
+                          {sign}{totalModifier}
+                      </span>
+                  </div>
+                );
+              })}
               </div>
-              ))}
             </div>
-          </div>
 
           {/* Senses */}
           <div className="flex flex-col space-y-2 bg-indigo-100 p-4 rounded items-center">
