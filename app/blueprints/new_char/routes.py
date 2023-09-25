@@ -2,24 +2,10 @@ from . import new_char
 from flask import request, jsonify
 from ...models import db, CharacterSheet, CharacterEquipments, AbilityModifiers, character_ability_values, Proficiency, CharacterProficiencies
 from firebase_admin import auth
-from werkzeug.utils import secure_filename
 from app.utils.character.calculate_hp import calculate_hp
 from app.utils.character.ability_bonuses import add_racial_bonuses_calc_mods
 from app.utils.character.ability_to_id import get_ability_name_to_id, get_id_to_ability_name
-import os
-import boto3
 
-
-S3_BUCKET = 'exionweb'
-S3_KEY = os.environ.get('S3_ACCESS_KEY')
-S3_SECRET = os.environ.get('S3_SECRET_KEY')
-S3_LOCATION = f'http://{S3_BUCKET}.s3.amazonaws.com/'
-
-s3 = boto3.client(
-    "s3",
-    aws_access_key_id=S3_KEY,
-    aws_secret_access_key=S3_SECRET
-)
 
 
 @new_char.route('/save-character', methods=['POST'])
@@ -146,47 +132,3 @@ def save_equipment():
         db.session.rollback()
         return jsonify({"message": f"An error occurred: {str(e)}"}), 500
 
-
-
-@new_char.route('/character-avatar-upload', methods=['POST'])
-def character_avatar_upload():
-    character_id = request.form.get('character_id')
-    if character_id is None:
-        return jsonify({"message": "character_id header is missing"}), 400
-
-    print(f"Received character_id: {character_id}")
-    print(f"Received request.files: {request.files}")
-
-    if not character_id:
-        return jsonify({"error": "character_id header is missing"}), 400
-
-    if 'file' not in request.files:
-        return jsonify({"error": "No file part in the request"}), 400
-    
-    file = request.files['file']
-
-    if file.filename == '':
-        return jsonify({"error": "No file selected"}), 400
-    
-    filename = secure_filename(file.filename)
-    s3.upload_fileobj(
-        file,
-        S3_BUCKET,
-        filename,
-        ExtraArgs={
-            "ACL": "public-read",
-            "ContentType": file.content_type
-        }
-    )
-
-    character = CharacterSheet.query.filter_by(id=character_id).first()
-    if character:
-        try:
-            character.characterPic = f"{S3_LOCATION}{filename}"
-            print(f"Setting characterPic for character {character.id} to {S3_LOCATION}{filename}")
-            db.session.commit()
-            print(f"CharacterPic for character {character.id} set and committed.")
-        except Exception as e:
-            print(f"Error updating characterPic for character {character_id}: {e}")
-        
-    return jsonify({"url": f"{S3_LOCATION}{filename}"})

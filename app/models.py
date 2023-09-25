@@ -39,16 +39,17 @@ class CharacterSheet(db.Model):
     armor_class = db.Column(db.Integer, nullable=False)
     current_hp = db.Column(db.Integer, nullable=False)
     max_hp = db.Column(db.Integer, nullable=False)
+    temp_hp = db.Column(db.Integer, nullable=True)
+    defenses = db.Column(db.String(255), nullable=True)
+    conditions = db.Column(db.String(255), nullable=True)
     ability_values = db.relationship('AbilityScore', secondary=character_ability_values, backref=db.backref('characters', lazy='dynamic'))
     ability_modifiers = db.relationship('AbilityModifiers', back_populates='character', lazy='dynamic', cascade="all, delete-orphan")
-    proficiencies = db.relationship('CharacterProficiencies', back_populates='character')
+    proficiencies = db.relationship('CharacterProficiencies', back_populates='character', cascade="all, delete-orphan")
     character_equipments = db.relationship('CharacterEquipments', cascade="all, delete-orphan", back_populates='character')
     user_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False, index=True)
     __table_args__ = (
         CheckConstraint('level>=1 AND level<=20', name='level_check'),
     )
-
-
 
 
 class CharacterEquipments(db.Model):
@@ -132,5 +133,5 @@ class CharacterProficiencies(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     character_id = db.Column(db.Integer, db.ForeignKey('character_sheet.id'), nullable=False)
     proficiency_id = db.Column(db.Integer, db.ForeignKey('proficiency.id'), nullable=False)
-    character = db.relationship('CharacterSheet', backref=db.backref('character_proficiencies', cascade="all, delete-orphan"))
+    character = db.relationship('CharacterSheet', back_populates='proficiencies')
 

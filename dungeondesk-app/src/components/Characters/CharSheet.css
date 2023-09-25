@@ -1,6 +1,13 @@
 .css-1jbf8uk {
 min-height: calc(100vh - 64px);
 height: auto !important;
+}
 
+.hidden-input {
+display: none;
 }
   
+.character-sheet-container {
+max-width: 90vh;
+margin: 0 auto;
+}

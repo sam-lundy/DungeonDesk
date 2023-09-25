@@ -1,9 +1,22 @@
 from . import character
 from flask import request, jsonify
 from ...models import db, Equipment, CharacterSheet, AbilityScore, character_ability_values, Classes, AbilityModifiers, CharacterProficiencies
-from sqlalchemy import func
-from sqlalchemy.dialects import postgresql
+from werkzeug.utils import secure_filename
 import json
+import os
+import boto3
+
+
+S3_BUCKET = 'exionweb'
+S3_KEY = os.environ.get('S3_ACCESS_KEY')
+S3_SECRET = os.environ.get('S3_SECRET_KEY')
+S3_LOCATION = f'http://{S3_BUCKET}.s3.amazonaws.com/'
+
+s3 = boto3.client(
+    "s3",
+    aws_access_key_id=S3_KEY,
+    aws_secret_access_key=S3_SECRET
+)
 
 
 @character.route('/get-characters', methods=['GET'])
@@ -74,7 +87,10 @@ def get_character(character_id):
         "armor class": character.armor_class,
         "current_hp": character.current_hp,
         "max_hp": character.max_hp,
+        "temp_hp": character.temp_hp,
         "alignment": character.alignment,
+        "defenses": character.defenses,
+        "conditions": character.conditions,
         "abilityScores": {
             "strength": ability_values.get("STR"),
             "dexterity": ability_values.get("DEX"),
@@ -137,6 +153,94 @@ def get_equipment_ids():
     return jsonify(equipment_mapping)
 
 
+
+@character.route('/edit-character/<int:character_id>', methods=['POST'])
+def edit_character(character_id):
+    try:
+        # Get the character from the database
+        character = CharacterSheet.query.get(character_id)
+        if not character:
+            return jsonify({"error": "Character not found."}), 404
+
+        # Extract data from the request
+        data = request.json
+
+        data = request.get_json()
+        background = data.get('background')
+        alignment = data.get('alignment')
+        current_hp = data.get('currentHP')
+        temp_hp = data.get('tempHP')
+        defenses = data.get('defenses')
+        conditions = data.get('conditions')
+        inspiration = data.get('inspiration')
+
+        # Updating the values
+        if background is not None:
+            character.background = background
+        if alignment is not None:
+            character.alignment = alignment
+        if current_hp is not None:
+            character.current_hp = current_hp
+        if temp_hp is not None:
+            character.temp_hp = temp_hp
+        if defenses is not None:
+            character.defenses = defenses
+        if conditions is not None:
+            character.conditions = conditions
+        if inspiration is not None:
+            character.inspiration = inspiration
+
+        # Commit changes to the database
+        db.session.commit()
+
+        return jsonify({"message": "Character updated successfully!"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@character.route('/character-avatar-upload', methods=['POST'])
+def character_avatar_upload():
+    character_id = request.form.get('character_id')
+    if character_id is None:
+        return jsonify({"message": "character_id header is missing"}), 400
+
+    print(f"Received character_id: {character_id}")
+    print(f"Received request.files: {request.files}")
+
+    if not character_id:
+        return jsonify({"error": "character_id header is missing"}), 400
+
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part in the request"}), 400
+    
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({"error": "No file selected"}), 400
+    
+    filename = secure_filename(file.filename)
+    s3.upload_fileobj(
+        file,
+        S3_BUCKET,
+        filename,
+        ExtraArgs={
+            "ACL": "public-read",
+            "ContentType": file.content_type
+        }
+    )
+
+    character = CharacterSheet.query.filter_by(id=character_id).first()
+    if character:
+        try:
+            character.characterPic = f"{S3_LOCATION}{filename}"
+            print(f"Setting characterPic for character {character.id} to {S3_LOCATION}{filename}")
+            db.session.commit()
+            print(f"CharacterPic for character {character.id} set and committed.")
+        except Exception as e:
+            print(f"Error updating characterPic for character {character_id}: {e}")
+        
+    return jsonify({"url": f"{S3_LOCATION}{filename}"})
 
 
 @character.route('/delete-character/<int:character_id>', methods=['DELETE'])
