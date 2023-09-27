@@ -4,7 +4,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useCharacterCreation } from './CharCreationContext';
+import { useCharacterCreation } from '../../contexts/CharCreationContext';
 
 
 const validationSchema = Yup.object().shape({
@@ -31,7 +31,7 @@ const CharacterCreate: React.FC = () => {
 
 
     return (
-        <Container>
+        <Container style={{ marginTop: '-20rem' }}>
             <Box display="flex" alignItems="center" height="100vh">
                 {/* Form Content */}
                 <Box flexGrow={4} display="flex" flexDirection="column" alignItems="center">

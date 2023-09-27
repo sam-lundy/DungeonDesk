@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import CharacterMainSection from './CharSheetContent';
-import './CharSheet.css';
+import './styles/CharSheet.css';
 import axios from 'axios';
 
 

@@ -2,9 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from './firebaseConfig.ts';
-import { 
-    Container, Typography, TextField, Button, Box 
-} from '@mui/material';
 
 
 function Register() {
@@ -64,64 +61,48 @@ function Register() {
   };
 
   return (
-    <Container component="main" maxWidth="xs" sx={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'flex-start', 
-      height: '80vh'
-      }}>
+    <div className="flex flex-col items-center justify-start h-[80vh] max-w-xs mx-auto">
+        <h5 className="text-center text-2xl font-semibold mb-6">Register to DungeonDesk</h5>
+        <form className="w-full space-y-4">
+            <div className="relative">
+                <input
+                    type="text"
+                    value={username}
+                    onChange={e => setUsername(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-md outline-none focus:border-indigo-500"
+                    placeholder="Username"
+                />
+            </div>
+            <div className="relative">
+                <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-md outline-none focus:border-indigo-500"
+                    placeholder="Email"
+                />
+            </div>
+            <div className="relative">
+                <input
+                    type="password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-md outline-none focus:border-indigo-500"
+                    placeholder="Password"
+                />
+            </div>
+            <button 
+                type="button"
+                onClick={handleRegister}
+                className="w-[100px] p-2 bg-[#0c0a26] text-white rounded-md hover:bg-[#444654] transition-colors"
+            >
+                Register
+            </button>
+            {message && <p className="mt-4 text-center text-red-500">{message}</p>}
+        </form>
+    </div>
+);
 
-      <Typography variant="h5" align="center">Register to DungeonDesk</Typography>
-      <Box component="form" mt={3}>
-      <TextField 
-          variant="outlined"
-          margin="normal"
-          fullWidth
-          label="Username"
-          type="text"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-        />
-        <TextField 
-          variant="outlined"
-          margin="normal"
-          fullWidth
-          label="Email"
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-        />
-        <TextField 
-          variant="outlined"
-          margin="normal"
-          fullWidth
-          label="Password"
-          type="password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-        />
-        <Button
-          type="button"
-          variant="contained"
-          color="primary"
-          onClick={handleRegister}
-          sx={{ 
-            marginTop: 3,
-            width: '100px',
-            backgroundColor: '#0c0a26',
-            color: '#FFFFFF',
-            '&:hover': {
-              backgroundColor: '#444654',  // A slightly darker shade for hover
-              }
-          }}
-        >
-          Register
-        </Button>
-        {message && <Typography variant="body2" align="center" color="error">{message}</Typography>}
-      </Box>
-    </Container>
-  );
 }
 
 export default Register;

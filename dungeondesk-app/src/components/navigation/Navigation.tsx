@@ -1,4 +1,4 @@
-import React, { useContext, FC } from 'react';
+import { useEffect, useState, useContext, FC } from 'react';
 import { AuthContext } from '../firebase/firebase.auth.tsx';
 import { useNavigate } from 'react-router-dom';
 import { auth, signOut } from '../firebase/firebaseConfig.ts';
@@ -13,13 +13,13 @@ interface NavigationProps {
     drawerOpen: boolean;
   }
   
-const Navigation: FC<NavigationProps> = ({ toggleDrawer, drawerOpen }) => {
+const Navigation: FC<NavigationProps> = ({ toggleDrawer }) => {
     const context = useContext(AuthContext)
     const currentUser = context ? context.currentUser : null;
     const navigate = useNavigate();
-    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-    const accountIconRef = React.useRef(null);
-    React.useEffect(() => {
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+    useEffect(() => {
         setAnchorEl(null);
     }, [currentUser]);
     
@@ -35,8 +35,9 @@ const Navigation: FC<NavigationProps> = ({ toggleDrawer, drawerOpen }) => {
     };
 
     const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorEl(accountIconRef.current);
+        setAnchorEl(event.currentTarget);
     };
+    
 
     const handleClose = () => {
         setAnchorEl(null);
@@ -44,7 +45,7 @@ const Navigation: FC<NavigationProps> = ({ toggleDrawer, drawerOpen }) => {
 
     return (
         <AppBar 
-            position="relative"
+            position="fixed"
             sx={{
                 background: '#0c0a26',
                 height: '55px',
@@ -86,7 +87,7 @@ const Navigation: FC<NavigationProps> = ({ toggleDrawer, drawerOpen }) => {
                             </IconButton>
                             <IconButton 
                             color="inherit" 
-                            onClick={handleMenu} ref={accountIconRef}
+                            onClick={handleMenu}
                             sx={{
                                 color: '#F5F5F5',
                             }}
@@ -121,4 +122,4 @@ const Navigation: FC<NavigationProps> = ({ toggleDrawer, drawerOpen }) => {
 }
 
 
-export default React.memo(Navigation);
+export default (Navigation);

@@ -3,7 +3,7 @@ import { Container, Typography, Modal, Box, Button } from "@mui/material";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
 import { gql, useLazyQuery } from "@apollo/client";
-import { useCharacterCreation } from "./CharCreationContext";
+import { useCharacterCreation } from "../../contexts/CharCreationContext"
 
 
 interface Trait {
@@ -58,7 +58,6 @@ const CharRace: React.FC = () => {
       }
     }
   `;
-
 
 
 const formik = useFormik({
@@ -174,9 +173,10 @@ const formik = useFormik({
     <Container
       sx={{
         display: "flex",
+        marginBottom: "100px",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         height: "100vh",
       }}
     >

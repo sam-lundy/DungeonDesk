@@ -5,7 +5,7 @@ import {
 import { useFormik } from 'formik';
 
 import { gql, useQuery } from '@apollo/client';
-import { useCharacterCreation } from './CharCreationContext';
+import { useCharacterCreation } from '../../contexts/CharCreationContext';
 import { useNavigate } from 'react-router-dom';
 
 

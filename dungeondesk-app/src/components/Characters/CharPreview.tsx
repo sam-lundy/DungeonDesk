@@ -1,5 +1,5 @@
 import { Container, Typography, Button, List, ListItem } from '@mui/material';
-import { useCharacterCreation } from './CharCreationContext';
+import { useCharacterCreation } from '../../contexts/CharCreationContext';
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
 

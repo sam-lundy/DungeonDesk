@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { auth } from './firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { 
-    Container, Typography, TextField, Button, Box 
-} from '@mui/material';
+
 
 function Login() {
     const [identifier, setIdentifier] = useState('');
@@ -43,52 +41,38 @@ function Login() {
     };
   
     return (
-        <Container component="main" maxWidth="xs" sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            justifyContent: 'flex-start', 
-            height: '80vh'
-            }}>
-            <Typography variant="h5" align="center">Please Sign-In</Typography>
-            <Box component="form" mt={3}>
-                <TextField 
-                    variant="outlined"
-                    margin="normal"
-                    fullWidth
-                    label="Email or Username"
-                    type="text"
-                    value={identifier}
-                    onChange={e => setIdentifier(e.target.value)}
-                />
-                <TextField 
-                    variant="outlined"
-                    margin="normal"
-                    fullWidth
-                    label="Password"
-                    type="password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                />
-                <Button
+        <div className="flex flex-col items-center justify-start h-[80vh] max-w-xs mx-auto">
+            <h5 className="text-center text-2xl font-semibold mb-6">Please Sign-In</h5>
+            <form className="w-full space-y-4">
+                <div className="relative">
+                    <input
+                        type="text"
+                        value={identifier}
+                        onChange={e => setIdentifier(e.target.value)}
+                        className="w-[300px] p-3 border border-gray-300 rounded-md outline-none focus:border-indigo-500"
+                        placeholder="Email or Username"
+                    />
+                </div>
+                <div className="relative">
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-md outline-none focus:border-indigo-500"
+                        placeholder="Password"
+                    />
+                </div>
+                <button 
                     type="button"
-                    variant="contained"
                     onClick={handleLogin}
-                    sx={{ 
-                        marginTop: 3,
-                        width: '100px',
-                        backgroundColor: '#0c0a26',
-                        color: '#FFFFFF',
-                        '&:hover': {
-                            backgroundColor: '#444654',  // A slightly darker shade for hover
-                        }
-                    }}
+                    className="w-[100px] p-2 bg-[#0c0a26] text-white rounded-md hover:bg-[#444654] transition-colors"
                 >
                     Login
-                </Button>
-            </Box>
-        </Container>
+                </button>
+            </form>
+        </div>
     );
+    
 }
   
 export default Login;

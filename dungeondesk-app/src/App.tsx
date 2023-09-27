@@ -14,13 +14,12 @@ import CharClass from './components/characters/CharClass';
 import CharAbilities from './components/characters/CharAbilities';
 import CharEquip from './components/characters/CharEquip';
 import CharPreview from './components/characters/CharPreview';
-import { CharacterCreationProvider } from './components/characters/CharCreationContext';
+import { CharacterCreationProvider } from './contexts/CharCreationContext';
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import AppDrawer from './components/navigation/AppDrawer';
 import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
 import { Box } from '@mui/material';
 import UserProfile from './components/profile/UserProfile';
-
 
 
 const client = new ApolloClient({
@@ -32,13 +31,37 @@ const client = new ApolloClient({
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#F3F3F4', // Your color
+      main: '#0C0A26',
+    },
+    secondary: {
+      main: '#0C0A26',
     },
     background: {
-      default: '#d2d1cd'
-    }
-  }
+      default: '#d2d1cd',
+    },
+  },
+  components: {
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          '&.Mui-focused fieldset': {
+            borderColor: '#0C0A26',
+          },
+        },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        outlined: {
+          '&.Mui-focused': {
+            color: '#0C0A26',
+          },
+        },
+      },
+    },
+  },
 });
+
 
 
 
@@ -65,18 +88,16 @@ const App = () => {
                 {currentUser && <AppDrawer drawerOpen={drawerOpen} />}
                 <Navigation toggleDrawer={toggleDrawer} drawerOpen={drawerOpen} />
               <Box sx={{
-                marginLeft: currentUser && drawerOpen ? '265px' : '150px',
+                marginLeft: currentUser && drawerOpen ? '265px' : '180px',
                 marginTop: '50px',
                 height: 'calc(100vh - 64px)',
-                width: '75%', // you can adjust this to control the width of the content box
+                width: '75%',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                // backgroundColor: '#ebe8e8', // optional, if you want the gray background
-                borderRadius: '5px', // optional, to give the box rounded corners
-                // border: '2px solid #E01C25',
-                padding: '16px' // spacing inside the box
+                borderRadius: '5px',
+                padding: '16px'
               }}>
               <Routes>
                   <Route path='/' element={

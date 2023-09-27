@@ -2,8 +2,6 @@ body {
   font-family: Handjet, sans-serif;
 }
 
-
-
 .App {
   text-align: center;
 }
@@ -19,15 +17,12 @@ body {
 }
 
 .main-content {
-  /* Assuming AppDrawer width is 220px and AppBar height is 64px */
-  padding-left: 220px; /* Adjust this based on the AppDrawer's state */
+  padding-left: 220px;
   padding-top: 64px;
-  
-  /* Center content */
   display: flex;
   justify-content: center;
   align-items: center;
-  height: calc(100vh - 64px); /* Assuming AppBar's height is 64px */
+  height: calc(100vh - 64px);
 }
 
 h1 {

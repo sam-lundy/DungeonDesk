@@ -6,7 +6,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { gql, useLazyQuery } from '@apollo/client';
 import { useFormik } from 'formik';
-import { useCharacterCreation } from './CharCreationContext';
+import { useCharacterCreation } from '../../contexts/CharCreationContext';
 
 
 interface ProficiencyOptionItem {

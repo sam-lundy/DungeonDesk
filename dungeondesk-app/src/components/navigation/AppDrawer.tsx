@@ -1,3 +1,4 @@
+import { FC } from 'react'
 import { Link } from 'react-router-dom';
 import MuiDrawer from '@mui/material/Drawer';  
 import List from '@mui/material/List';
@@ -9,7 +10,7 @@ interface AppDrawerProps {
   drawerOpen: boolean;
 }
 
-const AppDrawer: React.FC<AppDrawerProps> = ({ drawerOpen }) => {
+const AppDrawer: FC<AppDrawerProps> = ({ drawerOpen }) => {
   return (
     <MuiDrawer
       variant="persistent"
@@ -18,7 +19,6 @@ const AppDrawer: React.FC<AppDrawerProps> = ({ drawerOpen }) => {
       sx={{
         '& .MuiDrawer-paper, & .MuiDrawer-paper.MuiPaper-root': {
           width: 200,
-          // flexShrink: 0,
           backgroundColor: '#444654',
           color: '#F3F3F4',
           zIndex: '1050'

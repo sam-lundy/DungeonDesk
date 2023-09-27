@@ -2,8 +2,9 @@ import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../firebase/firebase.auth.tsx";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify"
-import { Container, Typography, Button, Avatar, Box, Dialog, DialogActions, 
-  DialogContent, DialogContentText, DialogTitle, CircularProgress } from "@mui/material";
+import { Container, Typography, Button, Box, Dialog, DialogActions, 
+  DialogContent, DialogContentText, DialogTitle, CircularProgress,
+    Card, CardMedia, CardContent, CardActions } from "@mui/material";
 
 
 interface Character {
@@ -38,6 +39,7 @@ const Characters: React.FC = () => {
       setCharacterToDelete(null);
   };
   
+
   const deleteCharacter = async (characterId: string) => {
     try {
       const response = await fetch(`http://localhost:5000/api/delete-character/${characterId}`, {
@@ -70,7 +72,6 @@ const Characters: React.FC = () => {
       handleClose();
     }
   };
-
 
 
   useEffect(() => {
@@ -131,35 +132,23 @@ const Characters: React.FC = () => {
 
 
   return (
-    <Container>
+    <Container style={{ marginTop: '-18rem' }}>
       <Box
         sx={{
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "center",
           alignItems: "center",
           marginBottom: "2rem",
         }}
       >
         <Typography variant="h5">My Characters</Typography>
-        <Button
-          variant="outlined"
-          color="primary"
-          component={Link}
-          to="/character-create"
-          disabled={!canCreateCharacter}
-          sx={{
-            backgroundColor: '#0C0A26',
-            color: 'white',
-            '&:hover': {
-                backgroundColor: '#0C0A26',
-                opacity: 0.8
-            }
-          }}
-        >
-          Create
-        </Button>
+        {!canCreateCharacter && (
+          <Typography variant="body2" color="error">
+            You've reached the maximum number of characters allowed.
+          </Typography>
+        )}
+        </Box>
         {!canCreateCharacter && <Typography variant="body2" color="error">You've reached the maximum number of characters allowed.</Typography>}
-      </Box>
 
       <Typography variant="body1">Slots used: {characters.length}/4</Typography>
 
@@ -176,65 +165,96 @@ const Characters: React.FC = () => {
           marginTop: "2rem",
         }}
       >
-      {characters.map((character) => (
-        <Box
-          key={character.id}
-          sx={{
-            width: "240px",
-            height: "320px",
-            border: "1px solid #0c0a26",
-            borderRadius: "8px",
-            padding: "1rem",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          <Avatar
-            src={character.imageUrl}
-            sx={{ width: "120px", height: "120px" }}
-          />
-          <Typography variant="h6" sx={{ marginTop: "1rem" }}>
-            {character.name}
-          </Typography>
-          <Box sx={{ marginTop: "auto" }}>
-            <Link to={`/character-sheet/${character.id}`}>
-              <Button 
-              variant="outlined" 
-              color="primary"
-              sx={{
-                backgroundColor: '#0C0A26',
-                color: 'white',
-                '&:hover': {
-                    backgroundColor: '#0C0A26',
-                    opacity: 0.8
-                }
-              }}
-              >
-                View
-              </Button>
-            </Link>
-            <Button 
-              variant="outlined"
-              color="secondary"
-              sx={{ 
-              marginLeft: "0.5rem",
-              backgroundColor: '#0C0A26',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: 'red',
-                opacity: 0.9
-            }
+        {characters.map((character) => (
+          <Card
+            key={character.id}
+            sx={{
+              width: "240px",
+              height: "320px",
+              border: "1px solid #0c0a26",
+              borderRadius: "8px",
+              padding: "1rem",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              backgroundColor: "slate-100"
             }}
-              onClick={() => handleOpen(character)}
-            >
-              Delete
-            </Button>
-            </Box>
-          </Box>
+          >
+            <CardMedia
+              component="img"
+              image={character.imageUrl}
+              title={character.name}
+              sx={{ width: "120px", height: "120px", borderRadius: "50%" }}
+            />
+            <CardContent>
+              <Typography variant="h6" sx={{ marginTop: "1rem" }}>
+                {character.name}
+              </Typography>
+            </CardContent>
+            <CardActions sx={{ marginTop: "auto", display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Link to={`/character-sheet/${character.id}`}>
+                <Button 
+                  variant="outlined" 
+                  color="primary"
+                  sx={{
+                    backgroundColor: '#0C0A26',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: '#0C0A26',
+                      opacity: 0.8
+                    }
+                  }}
+                >
+                  View
+                </Button>
+              </Link>
+              <Button 
+                variant="outlined"
+                color="secondary"
+                sx={{ 
+                  marginTop: "0.5rem",
+                  backgroundColor: '#0C0A26',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: 'red',
+                    opacity: 0.9
+                  }
+                }}
+                onClick={() => handleOpen(character)}
+              >
+                Delete
+              </Button>
+            </CardActions>
+          </Card>
         ))}
       </Box>
     )}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          marginTop: "2rem",
+        }}
+      >
+        <Button
+          variant="outlined"
+          color="primary"
+          component={Link}
+          to="/character-create"
+          disabled={!canCreateCharacter}
+          sx={{
+            backgroundColor: "#0C0A26",
+            color: "white",
+            "&:hover": {
+              backgroundColor: "#0C0A26",
+              opacity: 0.8,
+            },
+          }}
+        >
+          Create
+        </Button>
+      </Box>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
