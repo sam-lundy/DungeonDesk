@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import CheckConstraint
 from sqlalchemy.dialects.postgresql import JSON
 from datetime import datetime
+from enum import Enum
 
 db = SQLAlchemy()
 
@@ -47,6 +48,7 @@ class CharacterSheet(db.Model):
     proficiencies = db.relationship('CharacterProficiencies', back_populates='character', cascade="all, delete-orphan")
     character_equipments = db.relationship('CharacterEquipments', cascade="all, delete-orphan", back_populates='character')
     user_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False, index=True)
+    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=True)
     __table_args__ = (
         CheckConstraint('level>=1 AND level<=20', name='level_check'),
     )
@@ -135,3 +137,42 @@ class CharacterProficiencies(db.Model):
     proficiency_id = db.Column(db.Integer, db.ForeignKey('proficiency.id'), nullable=False)
     character = db.relationship('CharacterSheet', back_populates='proficiencies')
 
+
+class CampaignStatus(Enum):
+    SCHEDULED = "scheduled"
+    ACTIVE = "active"
+    COMPLETED = "completed"
+
+
+class Campaign(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    starting_location = db.Column(db.String(120), nullable=False)
+    status = db.Column(db.Enum(CampaignStatus), default=CampaignStatus.SCHEDULED)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    dm_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False)
+
+
+
+class CampaignFile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Invitation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=False)
+    player_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False)
+    status = db.Column(db.String(50), default="pending")  # can be 'pending', 'accepted', 'declined'
+    sent_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class CampaignChatMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=False)
+    sender_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)

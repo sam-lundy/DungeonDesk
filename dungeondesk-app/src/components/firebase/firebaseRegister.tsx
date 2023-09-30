@@ -18,15 +18,13 @@ function Register() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
   
-      // Now, send the additional user data to your Flask backend
+
       const additionalUserData = {
         uid: user.uid,
         username: username,
         email: email
         // ... any other data like bio, profile_pic, etc.
       };
-
-      // const jwt = localStorage.getItem('jwt');
 
       // Fetch the JWT
       const idToken = await user.getIdToken(true);

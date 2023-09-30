@@ -137,7 +137,7 @@ const CharEquip: React.FC = () => {
                 display: 'flex',
                 flexDirection: 'row',
                 justifyContent: 'center',
-                gap: '2rem',  // To add space between items
+                gap: '2rem',
             }}
         >
                 {data.classes[0].starting_equipment.map((item: { equipment: { name: string } }, index: number) => (

@@ -20,6 +20,8 @@ import AppDrawer from './components/navigation/AppDrawer';
 import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
 import { Box } from '@mui/material';
 import UserProfile from './components/profile/UserProfile';
+import CampaignCreation from './components/campaign/CampaignCreation';
+import FileUpload from './components/dashboard/FileUpload';
 
 
 const client = new ApolloClient({
@@ -126,6 +128,8 @@ const App = () => {
                       </Routes>
                     </CharacterCreationProvider>
                   }/>
+                  <Route path="/create-campaign" element={<CampaignCreation />} />
+                  <Route path="/file-upload" element={<FileUpload />} />
               </Routes>
                 </Box>
               </div>

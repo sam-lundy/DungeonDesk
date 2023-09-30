@@ -28,11 +28,16 @@ def create_app():
     from app.blueprints.profile import profile
     from app.blueprints.new_char import new_char
     from app.blueprints.character import character
+    from app.blueprints.campaign import campaign
+    from app.blueprints.files import files
 
     app.register_blueprint(authent, url_prefix='/api')
     app.register_blueprint(profile, url_prefix='/api')
     app.register_blueprint(new_char, url_prefix='/api')
     app.register_blueprint(character, url_prefix='/api')
+    app.register_blueprint(campaign, url_prefix='/api')
+    app.register_blueprint(files, url_prefix='/api')
+    
 
     @app.cli.command("seed-races")
     def seed_db_command():
