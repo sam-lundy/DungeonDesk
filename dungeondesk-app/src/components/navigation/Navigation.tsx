@@ -61,7 +61,6 @@ const Navigation: FC<NavigationProps> = ({ toggleDrawer }) => {
                     onClick={toggleDrawer}
                     sx={{
                         marginLeft: '0px',  // Adjust based on AppDrawer width
-                        backgroundColor: '#F5F5F5',
                         width: '30px',
                         height: '25px',
                         borderRadius: '3px',

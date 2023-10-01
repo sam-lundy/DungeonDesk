@@ -129,7 +129,8 @@ const App = () => {
                     </CharacterCreationProvider>
                   }/>
                   <Route path="/create-campaign" element={<CampaignCreation />} />
-                  <Route path="/file-upload" element={<FileUpload />} />
+                  <Route path="/file-upload/:campaignId" element={<FileUpload />} />
+
               </Routes>
                 </Box>
               </div>

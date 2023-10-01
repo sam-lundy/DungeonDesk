@@ -18,6 +18,18 @@ class User(db.Model):
     bio = db.Column(db.String(1000), nullable=False, default='No bio set')
     character_sheets = db.relationship('CharacterSheet', backref='user', cascade="all, delete-orphan", lazy=True)
 
+    def to_dict(self):
+        return {
+            "uid": self.uid,
+            "username": self.username,
+            "email": self.email,
+            "date_created": self.date_created.isoformat(),
+            "profile_pic": self.profile_pic,
+            "timezone": self.timezone,
+            "location": self.location,
+            "bio": self.bio
+        }
+
 
 character_ability_values = db.Table('character_ability_values',
     db.Column('character_id', db.Integer, db.ForeignKey('character_sheet.id', ondelete='CASCADE'), primary_key=True),

@@ -46,6 +46,27 @@ def get_user_invitations(user_uid):
     return jsonify([invitation.to_dict() for invitation in invitations])
 
 
+@campaign.route('/enriched-invitations', methods=['GET'])
+def get_enriched_invitations():
+    result = db.session.query(
+        Invitation.id, 
+        Campaign.name.label('campaign_name'), 
+        User.username.label('dm_username'),
+        Invitation.status,
+        Invitation.sent_at
+    ).join(
+        Campaign, Campaign.id == Invitation.campaign_id
+    ).join(
+        User, User.uid == Campaign.dm_uid
+    ).filter(
+        Invitation.status == "pending"
+    ).all()
+    
+    enriched_invitations = [r._asdict() for r in result]
+
+    return jsonify(enriched_invitations)
+
+
 @campaign.route('/invitations/<int:invitation_id>/accept', methods=['POST'])
 def accept_invitation(invitation_id):
     invitation = Invitation.query.get(invitation_id)
@@ -65,6 +86,14 @@ def decline_invitation(invitation_id):
     invitation.status = "declined"
     db.session.commit()
     return jsonify({"message": "Invitation declined!"}), 200
+
+
+@campaign.route('/campaigns/<int:campaign_id>/accepted-invites', methods=['GET'])
+def get_accepted_users(campaign_id):
+    accepted_invites = Invitation.query.filter_by(campaign_id=campaign_id, status="accepted").all()
+    
+    users = [User.query.get(invite.player_uid) for invite in accepted_invites]
+    return jsonify([user.to_dict() for user in users])
 
 
 @campaign.route('/campaigns/<int:campaign_id>/status', methods=['PUT'])
@@ -111,7 +140,7 @@ def get_user_campaigns(uid):
             "name": c.name, 
             "description": c.description, 
             "starting_location": c.starting_location, 
-            "status": c.status.value  # convert the Enum to its string representation
+            "status": c.status.value
         } for c in all_campaigns]
 
 

@@ -1,16 +1,17 @@
-import React, { useState, FC } from 'react';
+import { useState, FC } from 'react';
+import { useParams } from 'react-router-dom';
 import { Button, Box, Typography } from '@mui/material';
 import axios from 'axios';
 
-
 interface FileUploadProps {
-    campaignId: number | null;
+    campaignId?: number | null;
 }
 
-
-const FileUpload: FC<FileUploadProps> = ({ campaignId }) => {
+const FileUpload: FC<FileUploadProps> = () => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [uploadMessage, setUploadMessage] = useState<string | null>(null);
+    const { campaignId: campaignIdString } = useParams<{ campaignId: string }>();
+    const campaignId = Number(campaignIdString);
 
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,28 +51,38 @@ const FileUpload: FC<FileUploadProps> = ({ campaignId }) => {
     
 
     return (
-        <Box>
-            <Typography variant="h6" gutterBottom>
-                Upload Campaign Files
-            </Typography>
+        <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            justifyContent: 'space-between', 
+            m: '16px'
+        }}>
             
             <input 
                 type="file" 
                 onChange={handleFileChange}
             />
-            <Button 
-                type="button"
-                variant="contained" 
-                color="primary" 
-                onClick={handleUpload}
-                style={{ marginTop: '1rem' }}
-            >
-                Upload
-            </Button>
+
+            {selectedFile && 
+                <Button 
+                    type="button"
+                    variant="contained" 
+                    color="primary" 
+                    onClick={handleUpload}
+                    sx={{ alignSelf: 'center', mt: 2 }}
+                >
+                    Upload
+                </Button>
+            }
     
-            {uploadMessage && <Typography variant="body1" style={{ marginTop: '1rem', color: uploadMessage.includes("Error") ? 'red' : 'green' }}>
-                {uploadMessage}
-            </Typography>}
+            {uploadMessage && 
+                <Typography 
+                    variant="body1" 
+                    sx={{ mt: 2, color: uploadMessage.includes("Error") ? 'red' : 'green' }}
+                >
+                    {uploadMessage}
+                </Typography>
+            }
         </Box>
     );
     

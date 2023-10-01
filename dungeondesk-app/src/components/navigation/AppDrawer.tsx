@@ -25,11 +25,10 @@ const AppDrawer: FC<AppDrawerProps> = ({ drawerOpen }) => {
         }
       }}
     >
-      {/* Logo container */}
+      {/* Pushes links down */}
       <Box 
         sx={{ 
           padding: 2,
-          borderBottom: '1px solid #F3F3F4',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center'
@@ -41,6 +40,11 @@ const AppDrawer: FC<AppDrawerProps> = ({ drawerOpen }) => {
       <Box sx={{ height: '20px' }}></Box>
 
       <List>
+      <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <ListItemButton>
+            <ListItemText primary="Home" />
+          </ListItemButton>
+        </Link>
         <Link to="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
           <ListItemButton>
             <ListItemText primary="My Dashboard" />
@@ -51,7 +55,11 @@ const AppDrawer: FC<AppDrawerProps> = ({ drawerOpen }) => {
             <ListItemText primary="Characters" />
           </ListItemButton>
         </Link>
-        {/* ... add more items as needed */}
+        <Link to="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <ListItemButton>
+            <ListItemText primary="My Dashboard" />
+          </ListItemButton>
+        </Link>
       </List>
     </MuiDrawer>
   );
