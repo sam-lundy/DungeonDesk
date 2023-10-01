@@ -169,6 +169,15 @@ class Invitation(db.Model):
     status = db.Column(db.String(50), default="pending")  # can be 'pending', 'accepted', 'declined'
     sent_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'campaign_id': self.campaign_id,
+            'player_uid': self.player_uid,
+            'status': self.status,
+            'sent_at': self.sent_at.isoformat()  # Convert datetime to string for JSON serialization
+        }
+
 
 class CampaignChatMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)

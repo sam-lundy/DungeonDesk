@@ -1,5 +1,5 @@
 from . import campaign
-from app.models import db, Campaign, Invitation, User
+from app.models import db, Campaign, Invitation, User, CampaignStatus
 from flask import jsonify, request
 
 
@@ -22,31 +22,69 @@ def create_campaign():
     return jsonify({"message": "Campaign created successfully!", "campaign_id": new_campaign.id}), 201
 
 
-@campaign.route('/campaigns/<int:campaign_id>/invite', methods=['POST'])
+@campaign.route('/campaigns/<int:campaign_id>/invitations', methods=['POST'])
 def invite_players(campaign_id):
     invitations = request.json.get('invitations', [])
+    
+    for invitee in invitations:
+        user = User.query.filter((User.username == invitee) | (User.email == invitee)).first()
+        if not user:
+            return jsonify({"message": f"No user found with username or email '{invitee}'!"}), 400
 
-    for uid in invitations:
-        invitation = Invitation(campaign_id=campaign_id, player_uid=uid)
-        db.session.add(invitation)
+        existing_invitation = Invitation.query.filter_by(campaign_id=campaign_id, player_uid=user.uid).first()
+        if not existing_invitation:
+            invitation = Invitation(campaign_id=campaign_id, player_uid=user.uid)
+            db.session.add(invitation)
 
     db.session.commit()
     return jsonify({"message": "Invitations sent successfully!"}), 200
 
 
+@campaign.route('/users/<user_uid>/invitations', methods=['GET'])
+def get_user_invitations(user_uid):
+    invitations = Invitation.query.filter_by(player_uid=user_uid, status="pending").all()
+    return jsonify([invitation.to_dict() for invitation in invitations])
+
+
+@campaign.route('/invitations/<int:invitation_id>/accept', methods=['POST'])
+def accept_invitation(invitation_id):
+    invitation = Invitation.query.get(invitation_id)
+    if not invitation:
+        return jsonify({"message": "Invitation not found!"}), 404
+    invitation.status = "accepted"
+    # Add user to the campaign (if necessary)
+    db.session.commit()
+    return jsonify({"message": "Invitation accepted!"}), 200
+
+
+@campaign.route('/invitations/<int:invitation_id>/decline', methods=['POST'])
+def decline_invitation(invitation_id):
+    invitation = Invitation.query.get(invitation_id)
+    if not invitation:
+        return jsonify({"message": "Invitation not found!"}), 404
+    invitation.status = "declined"
+    db.session.commit()
+    return jsonify({"message": "Invitation declined!"}), 200
+
 
 @campaign.route('/campaigns/<int:campaign_id>/status', methods=['PUT'])
 def update_status(campaign_id):
     new_status = request.json.get('status')
+    
+    try:
+        status_enum = CampaignStatus(new_status)
+    except ValueError:
+        return jsonify({"message": f"Invalid status value '{new_status}'!"}), 400
 
     campaign = Campaign.query.get(campaign_id)
     if not campaign:
         return jsonify({"message": "Campaign not found!"}), 404
 
-    campaign.status = new_status
+    campaign.status = status_enum
     db.session.commit()
 
     return jsonify({"message": "Status updated successfully!"}), 200
+
 
 
 @campaign.route('/users/<string:uid>/campaigns', methods=['GET'])

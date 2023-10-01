@@ -10,7 +10,7 @@ interface FileUploadProps {
 
 const FileUpload: FC<FileUploadProps> = ({ campaignId }) => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [selectedCampaignId, setSelectedCampaignId] = useState<number | null>(null);
+    const [uploadMessage, setUploadMessage] = useState<string | null>(null);
 
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,29 +22,31 @@ const FileUpload: FC<FileUploadProps> = ({ campaignId }) => {
     const handleUpload = () => {
         console.log("handleUpload called");
         if (!selectedFile) {
-            console.log("No file selected");
+            setUploadMessage("No file selected");
             return;
         }
-        if (!selectedCampaignId) {
-            console.log("No campaign ID selected");
+        if (!campaignId) {
+            setUploadMessage("No campaign ID selected");
             return;
         }
         
         const formData = new FormData();
         formData.append('file', selectedFile);
     
-        axios.post(`http://localhost:5000/api/campaigns/${selectedCampaignId}/files`, formData, {
+        axios.post(`http://localhost:5000/api/campaigns/${campaignId}/files`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
         })
         .then(response => {
             console.log("File uploaded!", response.data);
+            setUploadMessage("File uploaded successfully!");
         })
         .catch(error => {
             console.error("Error:", error);
+            setUploadMessage("Error uploading file. Please try again.");
         });
-    };
+    };    
     
 
     return (
@@ -66,9 +68,13 @@ const FileUpload: FC<FileUploadProps> = ({ campaignId }) => {
             >
                 Upload
             </Button>
-
+    
+            {uploadMessage && <Typography variant="body1" style={{ marginTop: '1rem', color: uploadMessage.includes("Error") ? 'red' : 'green' }}>
+                {uploadMessage}
+            </Typography>}
         </Box>
     );
+    
 }
 
 export default FileUpload;

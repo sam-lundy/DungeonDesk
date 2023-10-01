@@ -32,10 +32,9 @@ def allowed_file(filename):
 def get_campaign_files(campaign_id):
     files = CampaignFile.query.filter_by(campaign_id=campaign_id).all()
     
-    # Convert the file objects to a list of URLs
-    file_urls = [file.filename for file in files]
+    file_data = [{"id": file.id, "filename": file.filename} for file in files]
     
-    return jsonify(file_urls)
+    return jsonify(file_data)
 
 
 

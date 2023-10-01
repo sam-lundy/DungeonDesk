@@ -1,7 +1,7 @@
 import { useContext, useState, useEffect, ChangeEvent, FC } from 'react';
 import { AuthContext } from '../firebase/firebase.auth';
 import axios from 'axios';
-import { Router, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
     Container, Typography, TextField, Button, Select,
      Box, Modal, MenuItem, InputLabel, FormControl, SelectChangeEvent
@@ -10,26 +10,19 @@ import campaignimage from '../../assets/images/campaign-tavern.jpg';
 import FileUpload from './FileUpload';
 
 
-interface CampaignFile {
-    id: number;
-    filename: string;
-}
-
-
-
-
 const Dashboard: FC = () => {
     const navigate = useNavigate();
     const [inviteModalOpen, setInviteModalOpen] = useState(false);
     const [invitations, setInvitations] = useState<string[]>(['']);
     const [status, setStatus] = useState('scheduled');
-    const [campaignFiles, setCampaignFiles] = useState<CampaignFile[]>([]);
+    const [campaignFiles, setCampaignFiles] = useState<{ id: number, filename: string, uploaded_at: string }[]>([]);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [userCampaigns, setUserCampaigns] = useState<any[]>([]);
     const [selectedCampaignId, setSelectedCampaignId] = useState<number | null>(null);
     const context = useContext(AuthContext)
     const currentUser = context ? context.currentUser : null;
     const userId = currentUser ? currentUser.uid : null;
+    const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
 
 
@@ -48,33 +41,51 @@ const Dashboard: FC = () => {
     
 
     useEffect(() => {
-        axios.get(`http://localhost:5000/api/campaigns/${selectedCampaignId}/files`)
-        .then(response => {
-            const files: CampaignFile[] = response.data.map((file: any) => ({
-                id: file.id,
-                filename: file.filename
-            }));
-            setCampaignFiles(files);
-            setFetchError(null);
-        })
-        .catch(error => {
-            console.error("Error fetching campaign files:", error);
-            setFetchError("Failed to fetch campaign files. Please try again later.");
-        });
-    }, []);
+        if (selectedCampaignId) {
+            axios.get(`http://localhost:5000/api/campaigns/${selectedCampaignId}/files`)
+            .then(response => {
+                setCampaignFiles(response.data);
+                setFetchError(null);
+            })
+            .catch(error => {
+                console.error("Error fetching campaign files:", error);
+                setFetchError("Failed to fetch campaign files. Please try again later.");
+            });
+        }
+    }, [selectedCampaignId]);         
     
     
 
     const handleInvite = () => {
-        axios.post(`http://localhost:5000/api/campaigns/${selectedCampaignId}/invite`, { invitations })
+        const validInvitations = invitations.filter(invite => invite.trim() !== '');
+        if (validInvitations.length === 0) {
+            return;
+        }
+    
+        axios.post(`http://localhost:5000/api/campaigns/${selectedCampaignId}/invitations`, { invitations: validInvitations })
         .then(response => {
             console.log("Invitations sent!", response.data);
+            setFeedbackMessage("Invitations sent successfully!");
+            setTimeout(() => {
+                setFeedbackMessage(null);
+            }, 3000);
             setInviteModalOpen(false);
         })
         .catch(error => {
             console.error("Error:", error);
+            if (error.response && error.response.data && error.response.data.message) {
+
+                setFeedbackMessage(error.response.data.message);
+            } else {
+                setFeedbackMessage("Error sending invitations. Please try again later.");
+            }
+            setTimeout(() => {
+                setFeedbackMessage(null);
+            }, 3000);
         });
+        
     };
+    
 
 
     const handleStatusChange = (event: SelectChangeEvent) => {
@@ -93,9 +104,8 @@ const Dashboard: FC = () => {
 
 
     const deleteFile = (fileId: number) => {
-        axios.delete(`/api/campaigns/files/${fileId}`)
+        axios.delete(`http://localhost:5000/api/campaigns/files/${fileId}`)
         .then(response => {
-            // Remove the file from the campaignFiles state
             setCampaignFiles(prevFiles => prevFiles.filter(file => file.id !== fileId));
         })
         .catch(error => {
@@ -158,32 +168,9 @@ const Dashboard: FC = () => {
     
                 <img src={campaignimage} alt="Forest Tavern" />
     
-                {/* Displaying the campaigns */}
-                {userCampaigns.map((campaign, index) => (
-                    <Box key={index} sx={{ marginBottom: '1rem' }}>
-                        <Typography variant="h6">
-                            {campaign.name}  {/* Assuming each campaign has a name property */}
-                        </Typography>
-                        <Typography variant="body2">
-                            {/* You can add other campaign details here */}
-                        </Typography>
-                    </Box>
-                ))}
-                <FormControl fullWidth variant="outlined" margin="normal">
-                    <InputLabel id="status-label">Campaign Status</InputLabel>
-                    <Select
-                        labelId="status-label"
-                        value={status}
-                        onChange={handleStatusChange}
-                        label="Campaign Status"
-                    >
-                        <MenuItem value="scheduled">Scheduled</MenuItem>
-                        <MenuItem value="active">Active</MenuItem>
-                        <MenuItem value="completed">Completed</MenuItem>
-                    </Select>
-                </FormControl>
 
-                <FormControl fullWidth variant="outlined" margin="normal">
+
+<               FormControl fullWidth variant="outlined" margin="normal">
                     <InputLabel id="campaign-select-label">Select Campaign</InputLabel>
                     <Select
                         labelId="campaign-select-label"
@@ -197,6 +184,25 @@ const Dashboard: FC = () => {
                         ))}
                     </Select>
                 </FormControl>
+
+                {selectedCampaignId && (
+                    <FormControl fullWidth variant="outlined" margin="normal">
+                        <InputLabel id="status-label">Campaign Status</InputLabel>
+                        <Select
+                            labelId="status-label"
+                            value={status}
+                            onChange={handleStatusChange}
+                            label="Campaign Status"
+                        >
+                            <MenuItem value="scheduled">Scheduled</MenuItem>
+                            <MenuItem value="active">Active</MenuItem>
+                            <MenuItem value="completed">Completed</MenuItem>
+                        </Select>
+                    </FormControl>
+                )}
+
+
+
             </Box>
 
             {/* Right Container for the smaller boxes */}
@@ -312,12 +318,12 @@ const Dashboard: FC = () => {
                         Campaign Files
                     </Typography>
                     <ul>
-                        {campaignFiles.map((file, index) => (
-                            <li key={index}>
+                        {campaignFiles.map(file => (
+                            <li key={file.id}>
                                 <a href={file.filename} target="_blank" rel="noopener noreferrer">
                                     {file.filename.split('/').pop()}
                                 </a>
-                                <Button onClick={() => deleteFile(file.id)}>Delete</Button>
+                                <Button onClick={() => deleteFile(file.id)}>Delete</Button> 
                             </li>
                         ))}
                     </ul>
