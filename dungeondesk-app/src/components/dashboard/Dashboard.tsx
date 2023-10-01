@@ -244,12 +244,14 @@ const Dashboard: FC = () => {
                             value={selectedCampaignId || ""}
                             onChange={(event) => setSelectedCampaignId(Number(event.target.value))}
                         >
+                            <option value="" disabled>Select a Campaign</option>
                             {userCampaigns.map(campaign => (
                                 <option key={campaign.id} value={campaign.id}>
                                     {campaign.name}
                                 </option>
                             ))}
                         </select>
+
                     </div>
 
                     {selectedCampaignId && (
