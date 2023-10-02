@@ -1,29 +1,42 @@
-import { FC, createContext, useState, ReactNode } from 'react';
+import { createContext, useState, useEffect, useContext, FC } from 'react';
+import { getAuth } from 'firebase/auth';
+
 
 type UsernamesContextType = {
-    usernames: { [key: string]: string };
-    setUsername: (uid: string, username: string) => void;
-};
-
-export const UsernamesContext = createContext<UsernamesContextType | undefined>(undefined);
+    usernames: { [uid: string]: string };
+    setUsernames: React.Dispatch<React.SetStateAction<{ [uid: string]: string }>>;
+  };
 
 type UsernamesProviderProps = {
-    children: ReactNode;
+    children: React.ReactNode;
 };
 
-export const UsernamesProvider: FC<UsernamesProviderProps> = ({ children }) => {
-    const [usernames, setUsernames] = useState<{ [key: string]: string }>({
-        SYSTEM: 'System'
-    });
-    
 
-    const setUsername = (uid: string, username: string) => {
-        setUsernames(prev => ({ ...prev, [uid]: username }));
-    };
+export const UsernamesContext = createContext<UsernamesContextType | null>(null);
+
+export const UsernamesProvider: React.FC<UsernamesProviderProps> = ({ children }) => {
+const [usernames, setUsernames] = useState<{ [uid: string]: string }>({});
+const auth = getAuth();
+
+
+useEffect(() => {
+    if (auth.currentUser) {
+    // Fetch the username for the authenticated user from your backend
+    fetch(`http://localhost:5000/api/get-username?uid=${auth.currentUser.uid}`)
+        .then(res => res.json())
+        .then(data => {
+        if (data.username) {
+            setUsernames(prevUsernames => ({ ...prevUsernames, [auth.currentUser!.uid]: data.username }));
+        }
+        });
+    }
+}, [auth.currentUser]);
+
 
     return (
-        <UsernamesContext.Provider value={{ usernames, setUsername }}>
-            {children}
+        <UsernamesContext.Provider value={{ usernames, setUsernames }}>
+        {children}
         </UsernamesContext.Provider>
     );
 };
+  

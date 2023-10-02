@@ -10,6 +10,7 @@ const rollDice = (sides: number): number => {
 const DiceRoller: FC = () => {
     const [result, setResult] = useState<number | null>(null);
     const { sendSystemMessage } = useSystemMessage();
+    
 
     const handleRoll = (sides: number) => {
         const rollResult = rollDice(sides);

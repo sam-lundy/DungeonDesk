@@ -44,6 +44,8 @@ def get_username():
     uid = request.args.get('uid')
     user = User.query.filter_by(uid=uid).first()
 
+    db.session.close()
+
     if not user:
         return jsonify({"success": False, "error": "User not found"}), 404
 

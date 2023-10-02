@@ -32,7 +32,7 @@ export const SystemMessageProvider: FC<SystemMessageProviderProps> = ({ children
         console.log('sendSystemMessage called with message:', message);
         const messagesRef = ref(db, 'messages');
         const systemMessage = {
-            text: `System: ${message}`,
+            text: message,
             userId: 'SYSTEM',
         };
         push(messagesRef, systemMessage);
