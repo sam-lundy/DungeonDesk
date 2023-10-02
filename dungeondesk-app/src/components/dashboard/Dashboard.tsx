@@ -181,6 +181,36 @@ const Dashboard: FC = () => {
     };
 
 
+    const deleteCampaign = async () => {
+        if (!selectedCampaignId) {
+          console.error("No campaign selected to delete.");
+          return;
+        }
+      
+        if (window.confirm("Are you sure you want to delete this campaign? This action cannot be undone.")) {
+          try {
+            const response = await axios.delete(`http://localhost:5000/api/delete-campaign/${selectedCampaignId}`);
+            if (response.data.success) {
+              navigate('/dashboard')
+              
+            } else {
+              console.error("Failed to delete the campaign: ", response.data.message);
+            }
+          } catch (error) {
+            console.error("Error deleting campaign: ", error);
+          }
+        }
+      };
+      
+
+
+    const goToGameScreen = () => {
+        navigate(`/game-session/${selectedCampaignId}`);
+    };
+
+    
+
+
     return (
         <Container 
             sx={{ 
@@ -269,6 +299,17 @@ const Dashboard: FC = () => {
                             </select>
                         </div>
                     )}
+
+                {selectedCampaignId && (
+                    <>
+                        <button onClick={goToGameScreen} className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 mr-2">
+                            Start Session
+                        </button>
+                        <button onClick={deleteCampaign} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                            Delete Campaign
+                        </button>
+                    </>
+                )}
                 </div>
             </Box>
 

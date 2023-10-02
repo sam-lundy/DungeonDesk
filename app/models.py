@@ -60,7 +60,7 @@ class CharacterSheet(db.Model):
     proficiencies = db.relationship('CharacterProficiencies', back_populates='character', cascade="all, delete-orphan")
     character_equipments = db.relationship('CharacterEquipments', cascade="all, delete-orphan", back_populates='character')
     user_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False, index=True)
-    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=True)
+    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id', ondelete='CASCADE'), nullable=True)
     __table_args__ = (
         CheckConstraint('level>=1 AND level<=20', name='level_check'),
     )
@@ -169,14 +169,14 @@ class Campaign(db.Model):
 
 class CampaignFile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=False)
+    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id', ondelete='CASCADE'), nullable=False)
     filename = db.Column(db.String(255), nullable=False)
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class Invitation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=False)
+    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id', ondelete='CASCADE'), nullable=False)
     player_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False)
     status = db.Column(db.String(50), default="pending")  # can be 'pending', 'accepted', 'declined'
     sent_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -187,13 +187,6 @@ class Invitation(db.Model):
             'campaign_id': self.campaign_id,
             'player_uid': self.player_uid,
             'status': self.status,
-            'sent_at': self.sent_at.isoformat()  # Convert datetime to string for JSON serialization
+            'sent_at': self.sent_at.isoformat()
         }
 
-
-class CampaignChatMessage(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=False)
-    sender_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False)
-    message = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)

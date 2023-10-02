@@ -1,6 +1,22 @@
 from . import campaign
-from app.models import db, Campaign, Invitation, User, CampaignStatus
+from app.models import db, Campaign, Invitation, User, CampaignStatus, CampaignFile
 from flask import jsonify, request
+from werkzeug.utils import secure_filename
+import os
+import boto3
+
+
+# S3 Configuration
+S3_BUCKET = 'exionweb'
+S3_KEY = os.environ.get('S3_ACCESS_KEY')
+S3_SECRET = os.environ.get('S3_SECRET_KEY')
+S3_LOCATION = f'http://{S3_BUCKET}.s3.amazonaws.com/'
+
+s3 = boto3.client(
+    "s3",
+    aws_access_key_id=S3_KEY,
+    aws_secret_access_key=S3_SECRET
+)
 
 
 @campaign.route('/campaigns', methods=['POST'])
@@ -147,3 +163,35 @@ def get_user_campaigns(uid):
         return jsonify(campaigns_list), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@campaign.route('/delete-campaign/<int:campaign_id>', methods=['DELETE'])
+def delete_campaign(campaign_id):
+    campaign = Campaign.query.get(campaign_id)
+    
+    if not campaign:
+        return jsonify({"success": False, "message": "Campaign not found"}), 404
+
+    # Obtain the current user's UID from the JWT in the headers
+    current_user_uid = request.headers.get('uid')
+
+    # Check if the current user is the DM
+    if campaign.dm_uid != current_user_uid:
+        return jsonify({"success": False, "message": "Unauthorized: Only the DM can delete this campaign"}), 403
+
+    # Delete associated files from S3
+    associated_files = CampaignFile.query.filter_by(campaign_id=campaign_id).all()
+    for file_record in associated_files:
+        filename = file_record.filename.split('/')[-1]
+        try:
+            s3.delete_object(Bucket=S3_BUCKET, Key=filename)
+        except Exception as e:
+            return jsonify({"success": False, "message": f"Error deleting file {filename} from S3", "error": str(e)}), 500
+
+    try:
+        db.session.delete(campaign)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Campaign and its associated files deleted successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": "An error occurred while deleting the campaign and its associated files", "error": str(e)}), 500

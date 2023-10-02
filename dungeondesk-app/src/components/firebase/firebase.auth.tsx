@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import { auth } from './firebaseConfig';
 
+
 interface ExtendedUser {
     uid: string;
     email: string | null;
@@ -29,7 +30,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [currentUser, setCurrentUser] = useState<ExtendedUser | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Helper function to check if two user objects are the same
     const isUserDataEqual = (a: ExtendedUser, b: ExtendedUser): boolean => {
         return JSON.stringify(a) === JSON.stringify(b);
     };
@@ -39,7 +39,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (user) {
                 const extendedInfo = await fetchUserFromDatabase(user.uid);
     
-                // Check if extendedInfo is not null before accessing its properties
                 if (extendedInfo) {
                     const newUserData = {
                         uid: user.uid,
@@ -67,7 +66,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
     
         return () => unsubscribe();
-    }, []); // Removed currentUser from the dependency array
+    }, []);
     
 
 
@@ -75,7 +74,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 
     if (loading) {
-        return <div>Loading...</div>; // or return a spinner or other loading indicator
+        return <div>Loading...</div>;
     }
 
     return (
@@ -103,8 +102,7 @@ async function fetchUserFromDatabase(uid: string): Promise<any> {
         if (!response.ok) {
             if (response.status === 404) {
                 console.log("User profile not found. This is expected for new users.");
-                // Handle the "user not found" scenario here, if needed
-                return null; // or return a default profile object
+                return null;
             } else {
                 throw new Error('Failed to fetch user from database.');
             }

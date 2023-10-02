@@ -15,6 +15,7 @@ import CharAbilities from './components/characters/CharAbilities';
 import CharEquip from './components/characters/CharEquip';
 import CharPreview from './components/characters/CharPreview';
 import { CharacterCreationProvider } from './contexts/CharCreationContext';
+import { UsernamesProvider } from './contexts/UsernameContext';
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import AppDrawer from './components/navigation/AppDrawer';
 import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
@@ -22,6 +23,10 @@ import { Box } from '@mui/material';
 import UserProfile from './components/profile/UserProfile';
 import CampaignCreation from './components/campaign/CampaignCreation';
 import FileUpload from './components/dashboard/FileUpload';
+import Chat from './components/social/Chat';
+import DiceRoller from './components/campaign/DiceRoller';
+import GameSession from './components/campaign/GameSession';
+import { SystemMessageProvider } from './contexts/SystemMessageContext';
 
 
 const client = new ApolloClient({
@@ -101,13 +106,13 @@ const App = () => {
                 borderRadius: '5px',
                 padding: '16px'
               }}>
-              <Routes>
+                <Routes>
                   <Route path='/' element={
                     <div>
-                    <header className='App-header' style={{ marginTop: '-500px' }}>
+                      <header className='App-header' style={{ marginTop: '-500px' }}>
                         <h1>DungeonDesk</h1>
                         <p>Welcome to DungeonDesk, your ultimate fantasy campaign manager!</p>
-                    </header>
+                      </header>
                     </div>
                   } />
                   <Route path='/profile' element={<UserProfile />} />
@@ -119,19 +124,25 @@ const App = () => {
                   <Route path='/character-create/*' element={
                     <CharacterCreationProvider>
                       <Routes>
-                          <Route index element={<CharacterCreate />} />
-                          <Route path='race' element={<CharRace />} />
-                          <Route path='class' element={<CharClass />} />
-                          <Route path='abilities' element={<CharAbilities />} />
-                          <Route path='equipment' element={<CharEquip />} />
-                          <Route path='preview' element={<CharPreview />} />
+                        <Route index element={<CharacterCreate />} />
+                        <Route path='race' element={<CharRace />} />
+                        <Route path='class' element={<CharClass />} />
+                        <Route path='abilities' element={<CharAbilities />} />
+                        <Route path='equipment' element={<CharEquip />} />
+                        <Route path='preview' element={<CharPreview />} />
                       </Routes>
                     </CharacterCreationProvider>
-                  }/>
+                  } />
                   <Route path="/create-campaign" element={<CampaignCreation />} />
                   <Route path="/file-upload/:campaignId" element={<FileUpload />} />
-
-              </Routes>
+                  <Route path='/game-session/:campaignId' element={
+                      <SystemMessageProvider>
+                          <UsernamesProvider>
+                              <GameSession />
+                          </UsernamesProvider>
+                      </SystemMessageProvider>
+                  } />
+                </Routes>
                 </Box>
               </div>
           </Router>

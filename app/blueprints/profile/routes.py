@@ -1,10 +1,10 @@
 from . import profile
 from flask import request, jsonify
-from ...models import db, User, CharacterSheet
-from firebase_admin import auth
+from ...models import db, User
 from werkzeug.utils import secure_filename
 import os
 import boto3
+
 
 S3_BUCKET = 'exionweb'
 S3_KEY = os.environ.get('S3_ACCESS_KEY')
@@ -16,6 +16,7 @@ s3 = boto3.client(
     aws_access_key_id=S3_KEY,
     aws_secret_access_key=S3_SECRET
 )
+
 
 @profile.route('/get-profile', methods=['GET'])
 def get_profile():
@@ -35,6 +36,20 @@ def get_profile():
         "location": user.location,
         "bio": user.bio,
         "profile_image": user.profile_pic
+    })
+
+
+@profile.route('/get-username', methods=['GET'])
+def get_username():
+    uid = request.args.get('uid')
+    user = User.query.filter_by(uid=uid).first()
+
+    if not user:
+        return jsonify({"success": False, "error": "User not found"}), 404
+
+    return jsonify({
+        "success": True,
+        "username": user.username
     })
 
 
