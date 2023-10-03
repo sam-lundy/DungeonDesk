@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, FC } from 'react';
+import { useState, useEffect, useContext, useRef, FC } from 'react';
 import { getDatabase, ref, onValue, push, remove } from 'firebase/database';
 import { getAuth } from 'firebase/auth';
 import { UsernamesContext } from '../../contexts/UsernameContext';
@@ -14,7 +14,7 @@ type MessageType = {
   const Chat: FC = () => {
     const [messages, setMessages] = useState<MessageType[]>([]);
     const [newMessage, setNewMessage] = useState<string>('');
-  
+    const chatEndRef = useRef<HTMLDivElement | null>(null);
     const db = getDatabase();
     const auth = getAuth();
 
@@ -35,7 +35,15 @@ type MessageType = {
           
           setMessages(loadedMessages);
       });
-  }, [db]);  
+  }, [db]);
+
+
+    useEffect(() => {
+      if (chatEndRef.current) {
+          chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+  }, [messages]);
+
 
       const contextValue = useContext(UsernamesContext);
       if (!contextValue) {
@@ -76,6 +84,7 @@ type MessageType = {
                 <div className="chat-bubble">
                     {message.text.startsWith("System:") ? message.text : `${usernames[message.userId] || 'Unknown User'}: ${message.text}`}
                 </div>
+                <div ref={chatEndRef} />
             </div>
         ))}
 

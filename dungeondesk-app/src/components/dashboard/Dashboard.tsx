@@ -70,8 +70,6 @@ const Dashboard: FC = () => {
     const [acceptedUsers, setAcceptedUsers] = useState<UserType[]>([]);
     const [userCharacters, setUserCharacters] = useState<any[]>([]);
     const [selectedCharacterId, setSelectedCharacterId] = useState<number | null>(null);
-    // const showAssociateButton = selectedCharacterId && selectedCharacterId.campaign_id === null;
-    // const showDisassociateButton = selectedCharacterId && selectedCharacterId.campaign_id === selectedCampaignId;
 
 
 
@@ -392,7 +390,6 @@ const Dashboard: FC = () => {
                         )}
                     </div>
                 )}
-
 
 
                 {selectedCampaignId && (

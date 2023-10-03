@@ -232,3 +232,17 @@ def disassociate_from_campaign(campaign_id):
     db.session.commit()
 
     return jsonify({"message": "Character successfully disassociated from the campaign."})
+
+
+@campaign.route('/campaigns/<int:campaign_id>/characters', methods=['GET'])
+def get_campaign_characters(campaign_id):
+    # Fetch characters associated with the given campaign ID
+    characters = CharacterSheet.query.filter_by(campaign_id=campaign_id).all()
+
+    character_data = [{
+        'id': char.id,
+        'name': char.name,
+        'level': char.level
+    } for char in characters]
+
+    return jsonify(character_data)
