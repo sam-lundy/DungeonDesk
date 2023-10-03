@@ -72,22 +72,13 @@ type MessageType = {
         <div>
           <div className="flex flex-col h-[500px] border border-black bg-slate-100 p-4 overflow-y-auto">
           {messages.map(message => (
-            message.userId === auth.currentUser?.uid ? (
-                // Message from the current user
-                <div key={message.id} className="chat chat-end mb-4">
-                    <div className="chat-bubble">
-                        {message.text}
-                    </div>
+            <div key={message.id} className={message.userId === auth.currentUser?.uid ? "chat chat-end mb-4" : "chat chat-start mb-4"}>
+                <div className="chat-bubble">
+                    {message.text.startsWith("System:") ? message.text : `${usernames[message.userId] || 'Unknown User'}: ${message.text}`}
                 </div>
-            ) : (
-                // Message from another user
-                <div key={message.id} className="chat chat-start mb-4">
-                    <div className="chat-bubble">
-                        {usernames[message.userId] || 'Unknown User'}: {message.text}
-                    </div>
-                </div>
-            )
+            </div>
         ))}
+
 
           </div>
       

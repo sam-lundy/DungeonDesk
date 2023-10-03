@@ -1,5 +1,5 @@
 from . import campaign
-from app.models import db, Campaign, Invitation, User, CampaignStatus, CampaignFile
+from app.models import db, Campaign, Invitation, User, CampaignStatus, CampaignFile, CharacterSheet
 from flask import jsonify, request
 from werkzeug.utils import secure_filename
 import os
@@ -135,7 +135,6 @@ def update_status(campaign_id):
 @campaign.route('/users/<string:uid>/campaigns', methods=['GET'])
 def get_user_campaigns(uid):
     try:
-        # Check if the user exists
         user = User.query.get(uid)
         if not user:
             return jsonify({"error": "User not found"}), 404
@@ -195,3 +194,41 @@ def delete_campaign(campaign_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"success": False, "message": "An error occurred while deleting the campaign and its associated files", "error": str(e)}), 500
+
+
+@campaign.route('/campaigns/<int:campaign_id>/associate-character', methods=['POST'])
+def associate_character_with_campaign(campaign_id):
+    character_id = request.json.get('character_id')
+    
+    if not character_id or not campaign_id:
+        return jsonify({"error": "Both character_id and campaign_id are required."}), 400
+
+    character = CharacterSheet.query.get(character_id)
+
+    if not character:
+        return jsonify({"error": "Character not found."}), 404
+
+    character.campaign_id = campaign_id
+
+    db.session.commit()
+
+    return jsonify({"message": "Character successfully associated with campaign."})
+
+
+@campaign.route('/campaigns/<int:campaign_id>/disassociate-character', methods=['POST'])
+def disassociate_from_campaign(campaign_id):
+    character_id = request.json.get('character_id')
+    
+    if not character_id:
+        return jsonify({"error": "Character_id is required."}), 400
+
+    character = CharacterSheet.query.get(character_id)
+
+    if not character:
+        return jsonify({"error": "Character not found."}), 404
+
+    character.campaign_id = None
+
+    db.session.commit()
+
+    return jsonify({"message": "Character successfully disassociated from the campaign."})

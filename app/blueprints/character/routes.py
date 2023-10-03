@@ -21,7 +21,6 @@ s3 = boto3.client(
 
 @character.route('/get-characters', methods=['GET'])
 def get_characters():
-    # Retrieve user_uid from the request's headers
     user_uid = request.headers.get('uid')
     
     if not user_uid:
@@ -34,7 +33,8 @@ def get_characters():
     character_data = [{
         "id": character.id,
         "name": character.name,
-        "imageUrl": character.characterPic or "default_image_url"  # Provide a default image URL if none exists
+        "imageUrl": character.characterPic or "default_image_url",
+        "campaign_id": character.campaign_id
     } for character in characters]
 
     if not character_data:
@@ -44,6 +44,7 @@ def get_characters():
     })
 
     return jsonify(character_data)
+
 
 
 @character.route('/get-character/<int:character_id>', methods=['GET'])

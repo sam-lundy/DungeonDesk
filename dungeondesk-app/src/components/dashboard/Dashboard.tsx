@@ -1,11 +1,11 @@
-import { useContext, useState, useEffect, ChangeEvent, FC } from 'react';
+import { useContext, useState, useEffect, FC } from 'react';
 import { AuthContext } from '../firebase/firebase.auth';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/system';
 import { 
-    Container, Typography, TextField, Button, Select,
-     Box, Modal, MenuItem, InputLabel, FormControl, SelectChangeEvent
+    Container, Typography, TextField, Button,
+     Box, Modal,
 } from '@mui/material';
 import campaignimage from '../../assets/images/campaign-tavern.jpg';
 import FileUpload from './FileUpload';
@@ -50,6 +50,7 @@ export type UserType = {
     username: string;
     profile_pic: string;
     timezone: string;
+    campaign_id: number;
 };
 
 
@@ -67,6 +68,11 @@ const Dashboard: FC = () => {
     const userId = currentUser ? currentUser.uid : null;
     const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
     const [acceptedUsers, setAcceptedUsers] = useState<UserType[]>([]);
+    const [userCharacters, setUserCharacters] = useState<any[]>([]);
+    const [selectedCharacterId, setSelectedCharacterId] = useState<number | null>(null);
+    // const showAssociateButton = selectedCharacterId && selectedCharacterId.campaign_id === null;
+    // const showDisassociateButton = selectedCharacterId && selectedCharacterId.campaign_id === selectedCampaignId;
+
 
 
     useEffect(() => {
@@ -95,6 +101,11 @@ const Dashboard: FC = () => {
     }, [selectedCampaignId, userCampaigns]);
     
 
+    useEffect(() => {
+        fetchCharacters();
+    }, [userId, selectedCampaignId]);      
+    
+
 
     useEffect(() => {
         if (selectedCampaignId) {
@@ -121,7 +132,24 @@ const Dashboard: FC = () => {
                 console.error("Error fetching accepted users:", error);
             });
         }
-    }, [selectedCampaignId]);    
+    }, [selectedCampaignId]);
+    
+    
+    const fetchCharacters = () => {
+        if (userId && selectedCampaignId) {
+            axios.get('http://localhost:5000/api/get-characters', {
+                headers: {
+                    uid: userId
+                }
+            })
+            .then(response => {
+                setUserCharacters(response.data);
+            })
+            .catch(error => {
+                console.error("Error fetching user's characters:", error);
+            });
+        }
+    };
     
 
     const handleInvite = () => {
@@ -154,6 +182,36 @@ const Dashboard: FC = () => {
     };
 
 
+    const associateCharacterWithCampaign = () => {
+        if (selectedCampaignId && selectedCharacterId) {
+            axios.post(`http://localhost:5000/api/campaigns/${selectedCampaignId}/associate-character`, 
+                       { character_id: selectedCharacterId })
+            .then(response => {
+                console.log("Character associated with campaign!");
+                fetchCharacters();  // refresh character data
+            })
+            .catch(error => {
+                console.error("Error associating character with campaign:", error);
+            });
+        }
+    };    
+
+
+    const removeCharacterFromCampaign = () => {
+        if (selectedCampaignId && selectedCharacterId) {
+            axios.post(`http://localhost:5000/api/campaigns/${selectedCampaignId}/disassociate-character`, 
+                       { character_id: selectedCharacterId })
+            .then(response => {
+            console.log("Character removed from campaign!");
+            fetchCharacters(); // refresh character data
+            })
+            .catch(error => {
+                console.error("Error disassociating character from campaign:", error);
+            });
+        }
+    };
+    
+
     const handleStatusChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const newStatus = event.target.value;
         setStatus(newStatus);
@@ -168,7 +226,6 @@ const Dashboard: FC = () => {
         });
     };
     
-
 
     const deleteFile = (fileId: number) => {
         axios.delete(`http://localhost:5000/api/campaigns/files/${fileId}`)
@@ -203,12 +260,9 @@ const Dashboard: FC = () => {
       };
       
 
-
     const goToGameScreen = () => {
         navigate(`/game-session/${selectedCampaignId}`);
     };
-
-    
 
 
     return (
@@ -281,7 +335,6 @@ const Dashboard: FC = () => {
                                 </option>
                             ))}
                         </select>
-
                     </div>
 
                     {selectedCampaignId && (
@@ -299,6 +352,48 @@ const Dashboard: FC = () => {
                             </select>
                         </div>
                     )}
+
+
+                {selectedCampaignId && (
+                    <div className="my-4 text-center">
+                        <label htmlFor="character-select" className="block text-sm font-medium text-gray-700">Select a Character</label>
+                        <select 
+                            id="character-select"
+                            className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-800 focus:border-indigo-800 sm:text-sm"
+                            value={selectedCharacterId || ''}
+                            onChange={(e) => setSelectedCharacterId(Number(e.target.value))}
+                        >
+                            <option value="">Select a character...</option>
+                            {userCharacters.map(character => (
+                                <option key={character.id} value={character.id}>
+                                    {character.name}
+                                </option>
+                            ))}
+                        </select>
+
+                        {selectedCharacterId && (
+                            userCharacters.find(character => character.id === selectedCharacterId)?.campaign_id ? (
+                                // If character is associated with a campaign, show the "Remove" button
+                                <button 
+                                    onClick={removeCharacterFromCampaign}
+                                    className="mt-4 px-2 py-1 bg-red-700 text-white text-sm rounded hover:bg-red-800 focus:outline-none focus:bg-red-900"
+                                >
+                                    Remove Character from Campaign
+                                </button>
+                            ) : (
+                                // If character is NOT associated with any campaign, show the "Add" button
+                                <button 
+                                    onClick={associateCharacterWithCampaign}
+                                    className="mt-4 px-2 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 focus:outline-none focus:bg-indigo-800"
+                                >
+                                    Add Character to Campaign
+                                </button>
+                            )
+                        )}
+                    </div>
+                )}
+
+
 
                 {selectedCampaignId && (
                     <>
