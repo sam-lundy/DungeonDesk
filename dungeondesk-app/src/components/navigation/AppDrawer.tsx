@@ -5,12 +5,12 @@ import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Box from '@mui/material/Box';
+import { useLayoutContext } from '../../contexts/LayoutContext';
 
-interface AppDrawerProps {
-  drawerOpen: boolean;
-}
 
-const AppDrawer: FC<AppDrawerProps> = ({ drawerOpen }) => {
+const AppDrawer: FC = () => {
+  const { drawerOpen } = useLayoutContext();
+
   return (
     <MuiDrawer
       variant="persistent"
@@ -47,7 +47,7 @@ const AppDrawer: FC<AppDrawerProps> = ({ drawerOpen }) => {
         </Link>
         <Link to="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
           <ListItemButton>
-            <ListItemText primary="My Dashboard" />
+            <ListItemText primary="Dashboard" />
           </ListItemButton>
         </Link>
         <Link to="/characters" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -55,9 +55,9 @@ const AppDrawer: FC<AppDrawerProps> = ({ drawerOpen }) => {
             <ListItemText primary="Characters" />
           </ListItemButton>
         </Link>
-        <Link to="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <Link to="/campaigns" style={{ textDecoration: 'none', color: 'inherit' }}>
           <ListItemButton>
-            <ListItemText primary="My Dashboard" />
+            <ListItemText primary="Campaigns" />
           </ListItemButton>
         </Link>
       </List>

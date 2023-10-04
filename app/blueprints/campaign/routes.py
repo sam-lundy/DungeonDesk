@@ -33,6 +33,11 @@ def create_campaign():
 
     new_campaign = Campaign(name=name, description=description, starting_location=starting_location, dm_uid=dm_uid)
     db.session.add(new_campaign)
+    db.session.flush()
+
+    creator_invitation = Invitation(campaign_id=new_campaign.id, player_uid=dm_uid, status="accepted")
+    db.session.add(creator_invitation)
+
     db.session.commit()
 
     return jsonify({"message": "Campaign created successfully!", "campaign_id": new_campaign.id}), 201
@@ -175,10 +180,6 @@ def delete_campaign(campaign_id):
     # Obtain the current user's UID from the JWT in the headers
     current_user_uid = request.headers.get('uid')
 
-    print(f"DM UID from campaign: {campaign.dm_uid}")
-    print(f"Current user UID from headers: {current_user_uid}")
-
-
     # Check if the current user is the DM
     if campaign.dm_uid != current_user_uid:
         return jsonify({"success": False, "message": "Unauthorized: Only the DM can delete this campaign"}), 403
@@ -196,6 +197,9 @@ def delete_campaign(campaign_id):
     try:
         db.session.delete(campaign)
         db.session.commit()
+
+        return jsonify({"success": True, "message": "Campaign Deleted Successfully"}), 200
+    
     except Exception as e:
         print(f"Error deleting campaign from database: {e}")
         return jsonify({"success": False, "message": "An error occurred while deleting the campaign and its associated files", "error": str(e)}), 500

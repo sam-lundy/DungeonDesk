@@ -1,13 +1,32 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { auth } from './firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 
 
+const SESSION_TIMEOUT = 3600000;
+
 function Login() {
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
+
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const lastActivity = localStorage.getItem('lastActivity');
+            
+            if (lastActivity && Date.now() - Number(lastActivity) > SESSION_TIMEOUT) {
+                // Session has timed out
+                localStorage.removeItem('jwt');
+                localStorage.removeItem('lastActivity');
+                navigate('/login');
+            }
+        }, 60000);  // Check every minute
+
+        return () => clearInterval(interval);  // Cleanup when component is unmounted
+    }, [navigate]);
+
 
     const handleLogin = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -31,9 +50,9 @@ function Login() {
 
             // Store JWT in local storage or context
             localStorage.setItem('jwt', idToken);
+            localStorage.setItem('lastActivity', Date.now().toString());
             
-            // Redirect to home after successful login
-            navigate('/dashboard');
+            navigate('/');
         } catch (error) {
             // Handle Errors here.
             console.error(error);

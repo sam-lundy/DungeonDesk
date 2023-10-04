@@ -16,7 +16,6 @@ def register():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 400
 
-
     if not request.json:
         return jsonify({"success": False, "error": "No JSON data provided"})
     
@@ -24,24 +23,18 @@ def register():
     username = data.get('username')
     email = data.get('email')
 
-
     if not username:
         return jsonify({"success": False, "error": "Missing username in request."})
     if not email:
         return jsonify({"success": False, "error": "Missing email in request."})
-
-    #Check if username exists
     existing_user = User.query.filter_by(username=username).first()
     if existing_user:
         return jsonify({"success": False, "error": "Username already taken"})
     
-    #Check if email exists
     existing_email = User.query.filter_by(email=email).first()
     if existing_email:
         return jsonify({"success": False, "error": "Email address already in use."})
     
-
-    #Store user data
     new_user = User(uid=uid, username=username, email=email)
     db.session.add(new_user)
 
@@ -50,7 +43,6 @@ def register():
     except:
         db.session.rollback()
         return jsonify({"success": False, "error": str(e)}), 500
-
 
     return jsonify({"success": True, "message": "User registered successfully."})
     
@@ -65,7 +57,6 @@ def delete_user():
     if not auth_header or auth_header.split(' ')[1] != secret_key:
         return jsonify({"success": False, "error": "Unauthorized"}), 401
 
-    #delete user from PostgreSQL
     user_to_delete = User.query.filter_by(uid=uid).first()
     if user_to_delete:
         db.session.delete(user_to_delete)

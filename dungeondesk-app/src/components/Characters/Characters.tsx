@@ -177,7 +177,7 @@ const Characters: React.FC = () => {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              backgroundColor: "slate-100"
+              backgroundColor: "#f1f5f9"
             }}
           >
             <CardMedia

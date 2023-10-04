@@ -6,18 +6,24 @@ import { AppBar, Toolbar, IconButton, Button, Menu, MenuItem } from '@mui/materi
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import { useLayoutContext } from '../../contexts/LayoutContext.tsx';
 
 
-interface NavigationProps {
-    toggleDrawer: () => void;
-    drawerOpen: boolean;
-  }
+// interface NavigationProps {
+//     toggleDrawer: () => void;
+//     drawerOpen: boolean;
+//   }
   
-const Navigation: FC<NavigationProps> = ({ toggleDrawer }) => {
+const Navigation: FC = () => {
     const context = useContext(AuthContext)
     const currentUser = context ? context.currentUser : null;
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const { drawerOpen, setDrawerOpen } = useLayoutContext();
+
+    // const toggleDrawer = () => {
+    //     setDrawerOpen(prevState => !prevState);
+    //   };
 
     useEffect(() => {
         setAnchorEl(null);
@@ -58,7 +64,7 @@ const Navigation: FC<NavigationProps> = ({ toggleDrawer }) => {
                     <IconButton 
                     color="inherit" 
                     aria-label="menu" 
-                    onClick={toggleDrawer}
+                    onClick={() => setDrawerOpen(prevState => !prevState)}
                     sx={{
                         marginLeft: '0px',  // Adjust based on AppDrawer width
                         width: '30px',

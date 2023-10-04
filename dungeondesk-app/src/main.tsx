@@ -4,12 +4,15 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './components/firebase/firebase.auth';
 import './main.css'
+import { LayoutProvider } from './contexts/LayoutContext';
 
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AuthProvider>
-      <App />
+      <LayoutProvider>
+        <App />
+      </LayoutProvider>
     </AuthProvider>
   </React.StrictMode>,
 )

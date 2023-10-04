@@ -5,7 +5,7 @@ import './App.css';
 import Login from './components/firebase/firebaseLogin';
 import Register from './components/firebase/firebaseRegister';
 import Navigation from './components/navigation/Navigation';
-import Dashboard from './components/dashboard/Dashboard';
+import Dashboard from './components/home/Dashboard';
 import Characters from './components/characters/Characters';
 import CharacterSheet from './components/characters/CharSheet';
 import CharacterCreate from './components/characters/CharacterCreate';
@@ -22,11 +22,12 @@ import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
 import { Box } from '@mui/material';
 import UserProfile from './components/profile/UserProfile';
 import CampaignCreation from './components/campaign/CampaignCreation';
-import FileUpload from './components/dashboard/FileUpload';
-import Chat from './components/social/Chat';
-import DiceRoller from './components/campaign/DiceRoller';
+import FileUpload from './components/campaign/FileUpload';
 import GameSession from './components/campaign/GameSession';
 import { SystemMessageProvider } from './contexts/SystemMessageContext';
+import { useLayoutContext } from './contexts/LayoutContext';
+import Campaigns from './components/campaign/Campaigns';
+import Home from './components/home/Home';
 
 
 const client = new ApolloClient({
@@ -77,77 +78,70 @@ const App = () => {
   const currentUser = authContext && authContext.currentUser;
 
 
-  const [drawerOpen, setDrawerOpen] = useState(true);
+  const { drawerOpen, setDrawerOpen } = useLayoutContext();
 
-
-  const toggleDrawer = useCallback(() => {
-    setDrawerOpen(prevState => !prevState);
-  }, []);
+//   const toggleDrawer = useCallback(() => {
+//     setDrawerOpen(prevState => !prevState);
+// }, [setDrawerOpen]);
 
 
   return (
     <>
-      <ApolloProvider client={client}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-            <Router>
-              <div className='App'>
-                {currentUser && <AppDrawer drawerOpen={drawerOpen} />}
-                <Navigation toggleDrawer={toggleDrawer} drawerOpen={drawerOpen} />
-              <Box sx={{
-                marginLeft: currentUser && drawerOpen ? '265px' : '180px',
-                marginTop: '50px',
-                height: 'calc(100vh - 64px)',
-                width: '75%',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '5px',
-                padding: '16px'
-              }}>
-                <Routes>
-                  <Route path='/' element={
-                    <div>
-                      <header className='App-header' style={{ marginTop: '-500px' }}>
-                        <h1>DungeonDesk</h1>
-                        <p>Welcome to DungeonDesk, your ultimate fantasy campaign manager!</p>
-                      </header>
-                    </div>
-                  } />
-                  <Route path='/profile' element={<UserProfile />} />
-                  <Route path='/login' element={<Login />} />
-                  <Route path='/register' element={<Register />} />
-                  <Route path='/dashboard' element={<Dashboard />} />
-                  <Route path='/characters' element={<Characters />} />
-                  <Route path="/character-sheet/:characterId" element={<CharacterSheet />} />
-                  <Route path='/character-create/*' element={
-                    <CharacterCreationProvider>
-                      <Routes>
-                        <Route index element={<CharacterCreate />} />
-                        <Route path='race' element={<CharRace />} />
-                        <Route path='class' element={<CharClass />} />
-                        <Route path='abilities' element={<CharAbilities />} />
-                        <Route path='equipment' element={<CharEquip />} />
-                        <Route path='preview' element={<CharPreview />} />
-                      </Routes>
-                    </CharacterCreationProvider>
-                  } />
-                  <Route path="/create-campaign" element={<CampaignCreation />} />
-                  <Route path="/file-upload/:campaignId" element={<FileUpload />} />
-                  <Route path='/game-session/:campaignId' element={
-                      <SystemMessageProvider>
-                          <UsernamesProvider>
-                              <GameSession />
-                          </UsernamesProvider>
-                      </SystemMessageProvider>
-                  } />
-                </Routes>
-                </Box>
-              </div>
-          </Router>
-        </ThemeProvider>
-      </ApolloProvider>
+        <ApolloProvider client={client}>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+              <Router>
+                <div className='App'>
+                  {currentUser && <AppDrawer />}
+                  <Navigation  />
+                <Box sx={{
+                  marginLeft: currentUser && drawerOpen ? '265px' : '180px',
+                  marginTop: '50px',
+                  height: 'calc(100vh - 64px)',
+                  width: '75%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '5px',
+                  padding: '16px'
+                }}>
+                  <Routes>
+                    <Route path='/' element={<Home />} />
+                    <Route path='/profile' element={<UserProfile />} />
+                    <Route path='/login' element={<Login />} />
+                    <Route path='/register' element={<Register />} />
+                    <Route path='/dashboard' element={<Dashboard />} />
+                    <Route path='/characters' element={<Characters />} />
+                    <Route path='/campaigns' element={<Campaigns />} />
+                    <Route path="/character-sheet/:characterId" element={<CharacterSheet />} />
+                    <Route path='/character-create/*' element={
+                      <CharacterCreationProvider>
+                        <Routes>
+                          <Route index element={<CharacterCreate />} />
+                          <Route path='race' element={<CharRace />} />
+                          <Route path='class' element={<CharClass />} />
+                          <Route path='abilities' element={<CharAbilities />} />
+                          <Route path='equipment' element={<CharEquip />} />
+                          <Route path='preview' element={<CharPreview />} />
+                        </Routes>
+                      </CharacterCreationProvider>
+                    } />
+                    <Route path="/create-campaign" element={<CampaignCreation />} />
+                    <Route path="/file-upload/:campaignId" element={<FileUpload />} />
+                    <Route path='/game-session/:campaignId' element={
+                        <SystemMessageProvider>
+                            <UsernamesProvider>
+                                <GameSession />
+                            </UsernamesProvider>
+                        </SystemMessageProvider>
+                    } />
+                  </Routes>
+                  </Box>
+                </div>
+            </Router>
+          </ThemeProvider>
+        </ApolloProvider>
     </>
   )
 }

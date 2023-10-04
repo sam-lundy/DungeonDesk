@@ -75,7 +75,6 @@ class CharacterEquipments(db.Model):
     equipment = db.relationship('Equipment', back_populates='equipment_entries')
 
 
-
 race_ability_bonuses = db.Table('race_ability_bonuses',
     db.Column('race_id', db.Integer, db.ForeignKey('race.id')),
     db.Column('ability_score_id', db.Integer, db.ForeignKey('ability_score.id')),

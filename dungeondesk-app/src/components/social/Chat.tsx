@@ -15,6 +15,8 @@ type MessageType = {
     const [messages, setMessages] = useState<MessageType[]>([]);
     const [newMessage, setNewMessage] = useState<string>('');
     const chatEndRef = useRef<HTMLDivElement | null>(null);
+    const systemUserIds = new Set(messages.filter(msg => msg.userId === 'SYSTEM').map(msg => msg.userId));
+    const nonSystemUserIds = new Set(messages.filter(msg => msg.userId !== 'SYSTEM').map(msg => msg.userId));
     const db = getDatabase();
     const auth = getAuth();
 
@@ -23,6 +25,14 @@ type MessageType = {
       const messagesRef = ref(db, 'messages');
       await remove(messagesRef);
   };
+
+
+    const contextValue = useContext(UsernamesContext);
+    if (!contextValue) {
+        throw new Error("Chat component must be used within a UsernamesProvider");
+    }
+    const { usernames, setUsernames } = contextValue;
+
   
     useEffect(() => {
       const messagesRef = ref(db, 'messages');
@@ -32,10 +42,27 @@ type MessageType = {
           for (let id in fetchedMessages) {
               loadedMessages.push({ id, ...fetchedMessages[id] });
           }
-          
+  
+          const userIdsToFetch = loadedMessages
+              .map(message => message.userId)
+              .filter(userId => userId !== 'SYSTEM' && !usernames[userId] && userId !== auth.currentUser?.uid);
+  
+          if (userIdsToFetch.length > 0) {
+              // Fetch usernames from the backend
+              fetch(`http://localhost:5000/api/get-usernames?uids=${userIdsToFetch.join(",")}`)
+                  .then(res => res.json())
+                  .then(data => {
+                      setUsernames(prevUsernames => ({ ...prevUsernames, ...data }));
+                  });
+          }
           setMessages(loadedMessages);
       });
-  }, [db]);
+  
+      if (chatEndRef.current) {
+          chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+  }, [db, usernames, setUsernames]);
+  
 
 
     useEffect(() => {
@@ -44,12 +71,6 @@ type MessageType = {
       }
   }, [messages]);
 
-
-      const contextValue = useContext(UsernamesContext);
-      if (!contextValue) {
-        throw new Error("Chat component must be used within a UsernamesProvider");
-      }
-      const { usernames } = contextValue;
 
       const sendMessage = () => {
         const currentUserId = auth.currentUser?.uid;
@@ -78,11 +99,11 @@ type MessageType = {
   
     return (
         <div>
-          <div className="flex flex-col h-[500px] border border-black bg-slate-100 p-4 overflow-y-auto">
+          <div className="flex flex-col h-[400px] w-full bg-slate-100 p-1 overflow-y-auto">
           {messages.map(message => (
-            <div key={message.id} className={message.userId === auth.currentUser?.uid ? "chat chat-end mb-4" : "chat chat-start mb-4"}>
+            <div key={message.id} className={message.userId === auth.currentUser?.uid ? "chat chat-end mb-4 text-sm" : "chat chat-start mb-4 text-sm"}>
                 <div className="chat-bubble">
-                    {message.text.startsWith("System:") ? message.text : `${usernames[message.userId] || 'Unknown User'}: ${message.text}`}
+                  {message.userId === 'SYSTEM' ? message.text : `${usernames[message.userId] || 'Unknown User'}: ${message.text}`}
                 </div>
                 <div ref={chatEndRef} />
             </div>
@@ -96,12 +117,12 @@ type MessageType = {
                 type="text" 
                 value={newMessage} 
                 onChange={e => setNewMessage(e.target.value)} 
-                className="flex-grow px-2 py-1 outline-none rounded-l-md"
+                className="flex-grow w-1/2 px-2 py-1 outline-none text-sm rounded-l-md"
                 placeholder="Type a message..."
             />
             <button 
                 onClick={sendMessage} 
-                className="bg-indigo-500 text-white px-4 py-1 rounded-r-md hover:bg-indigo-600 focus:outline-none focus:bg-indigo-700"
+                className="bg-indigo-500 text-white text-sm px-4 py-1 rounded-r-md hover:bg-indigo-600 focus:outline-none focus:bg-indigo-700"
             >
                 Send
             </button>

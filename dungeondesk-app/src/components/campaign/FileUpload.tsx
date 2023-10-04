@@ -1,5 +1,4 @@
 import { useState, FC } from 'react';
-import { useParams } from 'react-router-dom';
 import { Button, Box, Typography } from '@mui/material';
 import axios from 'axios';
 
@@ -58,22 +57,25 @@ const FileUpload: FC<FileUploadProps> = ({ campaignId, onFileChange }) => {
             m: '16px'
         }}>
             
-            <input 
-                type="file" 
-                onChange={handleFileChange}
-            />
-
-            {selectedFile && 
-                <Button 
-                    type="button"
-                    variant="contained" 
-                    color="primary" 
-                    onClick={handleUpload}
-                    sx={{ alignSelf: 'center', mt: 2 }}
-                >
-                    Upload
-                </Button>
-            }
+            {campaignId && (
+            <>
+                <input 
+                    type="file" 
+                    onChange={handleFileChange}
+                />
+                {selectedFile && 
+                    <Button 
+                        type="button"
+                        variant="contained" 
+                        color="primary" 
+                        onClick={handleUpload}
+                        sx={{ alignSelf: 'center', mt: 2 }}
+                    >
+                        Upload
+                    </Button>
+                }
+            </>
+        )}
     
             {uploadMessage && 
                 <Typography 
@@ -84,8 +86,7 @@ const FileUpload: FC<FileUploadProps> = ({ campaignId, onFileChange }) => {
                 </Typography>
             }
         </Box>
-    );
-    
+    );  
 }
 
 export default FileUpload;

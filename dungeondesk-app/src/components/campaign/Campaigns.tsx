@@ -54,7 +54,7 @@ export type UserType = {
 };
 
 
-const Dashboard: FC = () => {
+const Campaigns: FC = () => {
     const navigate = useNavigate();
     const [inviteModalOpen, setInviteModalOpen] = useState(false);
     const [invitations, setInvitations] = useState<string[]>(['']);
@@ -291,7 +291,7 @@ const Dashboard: FC = () => {
                     flexDirection: 'column', 
                     border: '1px solid #0c0a26', 
                     borderRadius: 1, 
-                    bgcolor: '#e2e8f0',
+                    bgcolor: '#f1f5f9',
                     m: '16px',
                 }}
             >
@@ -422,7 +422,7 @@ const Dashboard: FC = () => {
                     border: '1px solid #0c0a26', 
                     borderRadius: 1,
                     height: '350px',
-                    bgcolor: '#e2e8f0',
+                    bgcolor: '#f1f5f9',
                     m: '16px'
                 }}
             >
@@ -445,18 +445,20 @@ const Dashboard: FC = () => {
                     ))}
                 </StyledList>
 
-                <Button 
-                    variant="contained" 
-                    color="secondary" 
-                    onClick={() => setInviteModalOpen(true)}
-                    sx={{
-                        mt: 2,
-                        mb: 2,
-                        alignSelf: 'center',
-                    }}
-                >
-                    Invite Players
-                </Button>
+                {selectedCampaignId && (
+                    <Button 
+                        variant="contained" 
+                        color="secondary" 
+                        onClick={() => setInviteModalOpen(true)}
+                        sx={{
+                            mt: 2,
+                            mb: 2,
+                            alignSelf: 'center',
+                        }}
+                    >
+                        Invite Players
+                    </Button>
+                )}
             </Box>
 
 
@@ -504,7 +506,7 @@ const Dashboard: FC = () => {
                     onClick={handleInvite}
                     sx={{ mt: 2 }}
                 >
-                    Send Invitations
+                    Send Invitation
                 </Button>
             </Box>
         </Modal>
@@ -517,7 +519,7 @@ const Dashboard: FC = () => {
                 height: '350px',
                 border: '1px solid #0c0a26', 
                 borderRadius: 1, 
-                bgcolor: '#e2e8f0',
+                bgcolor: '#f1f5f9',
                 m: '16px'
             }}
         >
@@ -551,7 +553,12 @@ const Dashboard: FC = () => {
                             >
                                 {file.filename.split('/').pop()}
                             </a>
-                            <Button onClick={() => deleteFile(file.id)}>Delete</Button> 
+                            <Button onClick={() => deleteFile(file.id)}
+                            sx={{
+
+                            }}
+                            >
+                                Delete</Button> 
                         </FileListItem>
                     ))}
                 </FileList>
@@ -564,4 +571,4 @@ const Dashboard: FC = () => {
     );
 }
 
-export default Dashboard;
+export default Campaigns;

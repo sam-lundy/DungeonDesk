@@ -29,20 +29,26 @@ const DiceRoller: FC = () => {
     };    
 
     return (
-        <div className="p-4 space-y-4">
-        <div className="flex space-x-2">
-            <button onClick={() => handleRoll(4)} className="py-2 px-4 bg-blue-500 text-white rounded">D4</button>
-            <button onClick={() => handleRoll(6)} className="py-2 px-4 bg-blue-500 text-white rounded">D6</button>
-            <button onClick={() => handleRoll(8)} className="py-2 px-4 bg-blue-500 text-white rounded">D8</button>
-            <button onClick={() => handleRoll(10)} className="py-2 px-4 bg-blue-500 text-white rounded">D10</button>
-            <button onClick={() => handleRoll(12)} className="py-2 px-4 bg-blue-500 text-white rounded">D12</button>
-            <button onClick={() => handleRoll(20)} className="py-2 px-4 bg-blue-500 text-white rounded">D20</button>
-        </div>
-        <div className="text-4xl font-bold">
-            {result ? `You rolled: ${result}` : 'Roll a die!'}
-        </div>
+        <div className="p-4 space-y-2 mb-40">
+            <div className="text-2xl font-bold text-center">
+                {result ? `You rolled: ${result}` : 'Roll a die!'}
+            </div>
+            <div className="flex flex-col space-y-2">
+                <div className="flex justify-center space-x-2">
+                    <button onClick={() => handleRoll(4)} className="py-2 px-4 bg-blue-500 text-white rounded">D4</button>
+                    <button onClick={() => handleRoll(6)} className="py-2 px-4 bg-blue-500 text-white rounded">D6</button>
+                    <button onClick={() => handleRoll(8)} className="py-2 px-4 bg-blue-500 text-white rounded">D8</button>
+                </div>
+                <div className="flex justify-center space-x-2">
+                    <button onClick={() => handleRoll(10)} className="py-2 px-4 bg-blue-500 text-white rounded">D10</button>
+                    <button onClick={() => handleRoll(12)} className="py-2 px-4 bg-blue-500 text-white rounded">D12</button>
+                    <button onClick={() => handleRoll(20)} className="py-2 px-4 bg-blue-500 text-white rounded">D20</button>
+                </div>
+            </div>
         </div>
     );
+    
+    
 };
 
 export default DiceRoller;

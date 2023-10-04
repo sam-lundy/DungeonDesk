@@ -39,9 +39,14 @@ def get_profile():
     })
 
 
+
 @profile.route('/get-username', methods=['GET'])
 def get_username():
     uid = request.args.get('uid')
+
+    if not uid:
+        return jsonify({"success": False, "error": "No uid provided"}), 400
+
     user = User.query.filter_by(uid=uid).first()
 
     db.session.close()
@@ -53,6 +58,31 @@ def get_username():
         "success": True,
         "username": user.username
     })
+
+
+
+@profile.route('/get-usernames', methods=['GET'])
+def get_usernames():
+    uids = request.args.get('uids')
+
+    if not uids:
+        return jsonify({"success": False, "error": "No uids provided"}), 400
+
+    uids_list = uids.split(',')
+    users = User.query.filter(User.uid.in_(uids_list)).all()
+
+    db.session.close()
+
+    if not users:
+        return jsonify({"success": False, "error": "Users not found"}), 404
+
+    usernames_map = {user.uid: user.username for user in users}
+
+    return jsonify({
+        "success": True,
+        "usernames": usernames_map
+    })
+
 
 
 @profile.route('/update-profile', methods=['POST'])

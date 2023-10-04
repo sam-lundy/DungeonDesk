@@ -62,7 +62,7 @@ const Invitations: React.FC = () => {
                 height: '250px',
                 border: '1px solid #0c0a26', 
                 borderRadius: 1,
-                bgcolor: '#e2e8f0',
+                bgcolor: '#f1f5f9',
                 m: '16px',
                 overflowY: 'auto'
             }}
