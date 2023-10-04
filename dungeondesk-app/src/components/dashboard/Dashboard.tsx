@@ -70,7 +70,7 @@ const Dashboard: FC = () => {
     const [acceptedUsers, setAcceptedUsers] = useState<UserType[]>([]);
     const [userCharacters, setUserCharacters] = useState<any[]>([]);
     const [selectedCharacterId, setSelectedCharacterId] = useState<number | null>(null);
-
+    const [fileChangeCounter, setFileChangeCounter] = useState(0);
 
 
     useEffect(() => {
@@ -117,7 +117,7 @@ const Dashboard: FC = () => {
                 setFetchError("Failed to fetch campaign files. Please try again later.");
             });
         }
-    }, [selectedCampaignId]);       
+    }, [selectedCampaignId, fileChangeCounter]);       
     
     
     useEffect(() => {
@@ -229,6 +229,7 @@ const Dashboard: FC = () => {
         axios.delete(`http://localhost:5000/api/campaigns/files/${fileId}`)
         .then(response => {
             setCampaignFiles(prevFiles => prevFiles.filter(file => file.id !== fileId));
+            setFileChangeCounter(prevCounter => prevCounter + 1);
         })
         .catch(error => {
             console.error("Error deleting file:", error);
@@ -244,7 +245,11 @@ const Dashboard: FC = () => {
       
         if (window.confirm("Are you sure you want to delete this campaign? This action cannot be undone.")) {
           try {
-            const response = await axios.delete(`http://localhost:5000/api/delete-campaign/${selectedCampaignId}`);
+            const response = await axios.delete(`http://localhost:5000/api/delete-campaign/${selectedCampaignId}`, {
+                headers: {
+                    'uid': userId
+                }
+            });
             if (response.data.success) {
               navigate('/dashboard')
               
@@ -532,7 +537,18 @@ const Dashboard: FC = () => {
                 <FileList>
                     {campaignFiles.map(file => (
                         <FileListItem key={file.id}>
-                            <a href={file.filename} target="_blank" rel="noopener noreferrer">
+                            <a 
+                                href={file.filename} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                style={{
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    display: 'block',
+                                    width: '100%'
+                                }}
+                            >
                                 {file.filename.split('/').pop()}
                             </a>
                             <Button onClick={() => deleteFile(file.id)}>Delete</Button> 
@@ -540,7 +556,7 @@ const Dashboard: FC = () => {
                     ))}
                 </FileList>
             }
-                <FileUpload campaignId={selectedCampaignId} />
+                <FileUpload campaignId={selectedCampaignId} onFileChange={() => setFileChangeCounter(prev => prev + 1)} />
                 </Box>
                 <Invitations />
             </Box>

@@ -167,12 +167,17 @@ def get_user_campaigns(uid):
 @campaign.route('/delete-campaign/<int:campaign_id>', methods=['DELETE'])
 def delete_campaign(campaign_id):
     campaign = Campaign.query.get(campaign_id)
-    
+    print(request.headers)
+
     if not campaign:
         return jsonify({"success": False, "message": "Campaign not found"}), 404
 
     # Obtain the current user's UID from the JWT in the headers
     current_user_uid = request.headers.get('uid')
+
+    print(f"DM UID from campaign: {campaign.dm_uid}")
+    print(f"Current user UID from headers: {current_user_uid}")
+
 
     # Check if the current user is the DM
     if campaign.dm_uid != current_user_uid:
@@ -185,15 +190,17 @@ def delete_campaign(campaign_id):
         try:
             s3.delete_object(Bucket=S3_BUCKET, Key=filename)
         except Exception as e:
+            print(f"Error deleting {filename} from S3: {e}")
             return jsonify({"success": False, "message": f"Error deleting file {filename} from S3", "error": str(e)}), 500
 
     try:
         db.session.delete(campaign)
         db.session.commit()
-        return jsonify({"success": True, "message": "Campaign and its associated files deleted successfully"}), 200
     except Exception as e:
-        db.session.rollback()
+        print(f"Error deleting campaign from database: {e}")
         return jsonify({"success": False, "message": "An error occurred while deleting the campaign and its associated files", "error": str(e)}), 500
+    
+    return jsonify({"success": False, "message": "Unknown error occurred"}), 500
 
 
 @campaign.route('/campaigns/<int:campaign_id>/associate-character', methods=['POST'])

@@ -5,13 +5,12 @@ import axios from 'axios';
 
 interface FileUploadProps {
     campaignId?: number | null;
+    onFileChange: () => void;
 }
 
-const FileUpload: FC<FileUploadProps> = () => {
+const FileUpload: FC<FileUploadProps> = ({ campaignId, onFileChange }) => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [uploadMessage, setUploadMessage] = useState<string | null>(null);
-    const { campaignId: campaignIdString } = useParams<{ campaignId: string }>();
-    const campaignId = Number(campaignIdString);
 
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,6 +41,7 @@ const FileUpload: FC<FileUploadProps> = () => {
         .then(response => {
             console.log("File uploaded!", response.data);
             setUploadMessage("File uploaded successfully!");
+            onFileChange();
         })
         .catch(error => {
             console.error("Error:", error);

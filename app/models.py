@@ -33,8 +33,8 @@ class User(db.Model):
 
 character_ability_values = db.Table('character_ability_values',
     db.Column('character_id', db.Integer, db.ForeignKey('character_sheet.id', ondelete='CASCADE'), primary_key=True),
-    db.Column('ability_score_id', db.Integer, db.ForeignKey('ability_score.id', ondelete='CASCADE'), primary_key=True),
-    db.Column('value', db.Integer, nullable=False)  # This stores the ability score value.
+    db.Column('ability_score_id', db.Integer, db.ForeignKey('ability_score.id'), primary_key=True),
+    db.Column('value', db.Integer, nullable=False)
 )
 
 
@@ -60,7 +60,7 @@ class CharacterSheet(db.Model):
     proficiencies = db.relationship('CharacterProficiencies', back_populates='character', cascade="all, delete-orphan")
     character_equipments = db.relationship('CharacterEquipments', cascade="all, delete-orphan", back_populates='character')
     user_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False, index=True)
-    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id', ondelete='CASCADE'), nullable=True)
+    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id', ondelete='SET NULL'), nullable=True)
     __table_args__ = (
         CheckConstraint('level>=1 AND level<=20', name='level_check'),
     )
@@ -164,7 +164,6 @@ class Campaign(db.Model):
     status = db.Column(db.Enum(CampaignStatus), default=CampaignStatus.SCHEDULED)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     dm_uid = db.Column(db.String, db.ForeignKey('user.uid'), nullable=False)
-
 
 
 class CampaignFile(db.Model):
