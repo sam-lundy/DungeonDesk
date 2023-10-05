@@ -132,7 +132,7 @@ const Characters: React.FC = () => {
 
 
   return (
-    <Container style={{ marginTop: '-18rem' }}>
+    <Container >
       <Box
         sx={{
           display: "flex",

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { SlNotebook } from 'react-icons/sl'
 import { LiaUserPlusSolid } from 'react-icons/lia'
 import { GiArmorPunch } from 'react-icons/gi'
-import { useLayoutContext } from '../../contexts/LayoutContext'
 import logo from '../../assets/images/dungeonlogo2.png'
 
 
@@ -23,7 +22,6 @@ const testimonials = [
 
 
 const Home = () => {
-    const { drawerOpen } = useLayoutContext();
     const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
 
@@ -39,7 +37,7 @@ const Home = () => {
     return (
         <div>
             {/* Hero Section */}
-            <section className={`bg-[#0c0a26] text-white p-10 shadow-lg ${drawerOpen ? '' : 'mt-[400px]'}`}>
+            <section className={`bg-[#0c0a26] text-white p-10 shadow-lg`}>
                 <div className="container mx-auto">
                     <img
                         src={logo}

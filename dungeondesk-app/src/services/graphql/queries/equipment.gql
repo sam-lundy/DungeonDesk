@@ -1,7 +1,0 @@
-query Equipment {
-    equipment {
-        name
-        type
-        // other fields
-    }
-}

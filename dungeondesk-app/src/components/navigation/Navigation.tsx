@@ -16,9 +16,6 @@ const Navigation: FC = () => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const { drawerOpen, setDrawerOpen } = useLayoutContext();
 
-    // const toggleDrawer = () => {
-    //     setDrawerOpen(prevState => !prevState);
-    //   };
 
     useEffect(() => {
         setAnchorEl(null);

@@ -74,8 +74,6 @@ const theme = createTheme({
 });
 
 
-
-
 const App = () => {
   const authContext = useContext(AuthContext);
   const currentUser = authContext && authContext.currentUser;
@@ -93,7 +91,7 @@ const App = () => {
                   <Navigation  />
                 <Box sx={{
                   marginLeft: currentUser && drawerOpen ? '265px' : '180px',
-                  marginTop: '50px',
+                  marginTop: !currentUser ? '265px' : '50px',
                   height: 'calc(100vh - 64px)',
                   width: '75%',
                   display: 'flex',
