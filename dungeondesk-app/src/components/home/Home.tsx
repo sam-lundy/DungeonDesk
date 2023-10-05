@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { SlNotebook } from 'react-icons/sl'
+import { Link } from 'react-router-dom';
 import { LiaUserPlusSolid } from 'react-icons/lia'
 import { GiArmorPunch } from 'react-icons/gi'
 import logo from '../../assets/images/dungeonlogo2.png'
@@ -44,10 +45,14 @@ const Home = () => {
                         alt="D&D Hero Image"
                         className="w-full object-cover h-96 rounded-lg"
                     />
-                    <h1 className="text-5xl italic mt-6 font-base">It's Dangerous to Go Alone..</h1>
+                    <h1 className="text-4xl italic mt-6 font-base">It's Dangerous to Go Alone..</h1>
                     <p className="mt-4 text-xl">Experience tabletop gaming and collaboration in a digital format.</p>
                     <button className="mt-6 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 rounded-lg transition-all duration-300">
+                    <Link 
+                        to="/register" 
+                        className="mt-6 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 rounded-lg transition-all duration-300">
                         Get Started
+                    </Link>
                     </button>
                 </div>
             </section>
@@ -55,24 +60,24 @@ const Home = () => {
             {/* Features Section */}
             <section className="bg-slate-200 py-10">
                 <div className="container mx-auto">
-                    <h3 className="text-4xl mb-8 font-semibold text-center">Key Features</h3>
+                    <h3 className="text-3xl mb-8 font-semibold text-center">Key Features</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {/* Feature 1 */}
                         <div className="transition-all hover:shadow-lg hover:bg-indigo-200 p-4 rounded-lg">
                             <SlNotebook className="text-4xl text-indigo-800 mx-auto" />
-                            <h3 className="text-3xl mt-4 font-medium text-center">Centralized Campaign Management</h3>
+                            <h3 className="text-2xl mt-4 font-medium text-center">Centralized Campaign Management</h3>
                             <p className="mt-2 text-xl italic text-center">Track your progress together</p>
                         </div>
                         {/* Feature 2 */}
                         <div className="transition-all hover:shadow-lg hover:bg-indigo-200 p-4 rounded-lg">
                             <LiaUserPlusSolid className="text-4xl text-indigo-800 mx-auto" />
-                            <h2 className="text-3xl mt-4 font-medium text-center">Character Sheets</h2>
+                            <h2 className="text-2xl mt-4 font-medium text-center">Character Sheets</h2>
                             <p className="mt-2 text-xl italic text-center">Let us handle the calculations</p>
                         </div>
                         {/* Feature 2 */}
                         <div className="transition-all hover:shadow-lg hover:bg-indigo-200 p-4 rounded-lg">
                             <GiArmorPunch className="text-4xl text-indigo-800 mx-auto" />
-                            <h2 className="text-3xl mt-4 font-medium text-center">Items, Spells, and Equipment</h2>
+                            <h2 className="text-2xl mt-4 font-medium text-center">Items, Spells, and Equipment</h2>
                             <p className="mt-2 text-xl italic text-center">Stay tuned!!</p>
                         </div>
                     </div>
@@ -82,7 +87,7 @@ const Home = () => {
             {/* Testimonials Section */}
             <section className="bg-[#0c0a26] text-white py-10">
                 <div className="container mx-auto">
-                    <h2 className="text-4xl mb-8 font-base text-center">What Users Are Saying</h2>
+                    <h2 className="text-3xl mb-8 font-base text-center">What Users Are Saying</h2>
                     <div className="space-y-6">
                     <div className="bg-white shadow-lg p-6 rounded-lg">
                         <p className="text-xl text-black font-medium leading-relaxed">
@@ -102,10 +107,11 @@ const Home = () => {
                         <h3 className="text-2xl mb-6 font-semibold text-center">About Us</h3>
                         <p className="text-lg text-center">
                             Issues? Concerns? Suggestions?
+                        </p>
                         <p>
                             <a href="mailto:admin@dungeondesk.com">Email Us</a>
                         </p>
-                        </p>
+                        
                     </div>
 
                     {/* Copyright Section */}

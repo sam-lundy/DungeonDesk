@@ -15,8 +15,8 @@ type MessageType = {
     const [messages, setMessages] = useState<MessageType[]>([]);
     const [newMessage, setNewMessage] = useState<string>('');
     const chatEndRef = useRef<HTMLDivElement | null>(null);
-    const systemUserIds = new Set(messages.filter(msg => msg.userId === 'SYSTEM').map(msg => msg.userId));
-    const nonSystemUserIds = new Set(messages.filter(msg => msg.userId !== 'SYSTEM').map(msg => msg.userId));
+    // const systemUserIds = new Set(messages.filter(msg => msg.userId === 'SYSTEM').map(msg => msg.userId));
+    // const nonSystemUserIds = new Set(messages.filter(msg => msg.userId !== 'SYSTEM').map(msg => msg.userId));
     const db = getDatabase();
     const auth = getAuth();
 

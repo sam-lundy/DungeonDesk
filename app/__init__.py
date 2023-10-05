@@ -30,6 +30,7 @@ def create_app():
     from app.blueprints.character import character
     from app.blueprints.campaign import campaign
     from app.blueprints.files import files
+    from app.blueprints.posts import posts
 
     app.register_blueprint(authent, url_prefix='/api')
     app.register_blueprint(profile, url_prefix='/api')
@@ -37,6 +38,7 @@ def create_app():
     app.register_blueprint(character, url_prefix='/api')
     app.register_blueprint(campaign, url_prefix='/api')
     app.register_blueprint(files, url_prefix='/api')
+    app.register_blueprint(posts, url_prefix='/api')
     
 
     @app.cli.command("seed-races")

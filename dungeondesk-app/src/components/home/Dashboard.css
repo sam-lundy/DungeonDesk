@@ -1,0 +1,17 @@
+/* Setting background for the sidebar links container */
+.dashboard-sidebar {
+    background-color: #0c0a26;
+    color: white;
+}
+
+/* Setting background for the main content container */
+.dashboard-main-content {
+    background-color: #0c0a26;
+    color: white;
+}
+
+/* Setting background for the textarea (adjust text color as needed) */
+.dashboard-textarea {
+    background-color: whitesmoke;
+    color: black;
+}
