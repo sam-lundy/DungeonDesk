@@ -8,11 +8,6 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useLayoutContext } from '../../contexts/LayoutContext.tsx';
 
-
-// interface NavigationProps {
-//     toggleDrawer: () => void;
-//     drawerOpen: boolean;
-//   }
   
 const Navigation: FC = () => {
     const context = useContext(AuthContext)

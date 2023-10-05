@@ -1,4 +1,4 @@
-import { useContext, useState, useCallback } from 'react';
+import { useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthContext } from './components/firebase/firebase.auth';
 import './App.css';
@@ -48,6 +48,9 @@ const theme = createTheme({
       default: '#d2d1cd',
     },
   },
+  typography: {
+    fontFamily: "'Lato', sans-serif",
+  },
   components: {
     MuiOutlinedInput: {
       styleOverrides: {
@@ -76,13 +79,7 @@ const theme = createTheme({
 const App = () => {
   const authContext = useContext(AuthContext);
   const currentUser = authContext && authContext.currentUser;
-
-
   const { drawerOpen, setDrawerOpen } = useLayoutContext();
-
-//   const toggleDrawer = useCallback(() => {
-//     setDrawerOpen(prevState => !prevState);
-// }, [setDrawerOpen]);
 
 
   return (
